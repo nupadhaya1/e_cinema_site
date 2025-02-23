@@ -8,9 +8,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { index } from "drizzle-orm/mysql-core";
-import { randomInt } from "crypto";
-
 export type Seat = {
   id: number;
   row: string;
@@ -111,7 +108,7 @@ export function SeatSelection({
                 onValueChange={(value) => updateAgeCategory(seat.id, value)}
               >
                 <SelectTrigger className="w-32">
-                  <SelectValue placeholder="Age Category" />
+                  <SelectValue placeholder="Adult" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="adult">Adult</SelectItem>

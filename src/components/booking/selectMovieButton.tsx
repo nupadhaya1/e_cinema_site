@@ -3,11 +3,12 @@
 import { useState } from "react";
 import { ShowtimeSelection } from "./SelectShowTimes";
 import { SeatSelection } from "./SelectSeats";
-import BookingSummary from "./SubmitBookingComponent";
+import BookingSummary from "./BookingSummary";
 import { Button } from "../ui/button";
 import { Showtime } from "./SelectShowTimes";
 import { Seat } from "./SelectSeats";
 import SelectCreditCard from "./SelectCreditCard";
+import ConfirmationPage from "./ConfirmationPage";
 
 export type Movie = {
   id: number;
@@ -26,6 +27,8 @@ export default function SelectMovieButton({ selectedMovie }: SelectMovieProps) {
   );
   const [selectedSeats, setSelectedSeats] = useState<Seat[]>([]);
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
+  const [discount, setDiscount] = useState<Number>(0.0);
+  const [confirmationNumber, setConfirmationNumber] = useState<Number>(-1);
 
   //TODO:
   function handleConfirmBooking() {
@@ -36,11 +39,10 @@ export default function SelectMovieButton({ selectedMovie }: SelectMovieProps) {
       selectedSeats,
       selectedCard,
     });
-    alert("Booking confirmed!");
-    // Reset the booking process
-    // setStep(1)
-    // setSelectedShowtime(null)
-    // setSelectedSeats([])
+    setConfirmationNumber(Math.floor(Math.random() * 100000000))
+    setStep(6);
+    //alert("Booking confirmed!");
+
   }
 
   function handleSelectShowtime(showtime: Showtime) {
@@ -80,7 +82,7 @@ export default function SelectMovieButton({ selectedMovie }: SelectMovieProps) {
         </Button>
       )}
 
-      {step !== 1 && (
+      {(step !== 1 && step !== 6) && (
         <div className="flex flex-row gap-1">
           <Button onClick={handleBackButton} className="w-full">
             Back
@@ -108,6 +110,8 @@ export default function SelectMovieButton({ selectedMovie }: SelectMovieProps) {
           movie={selectedMovie}
           showtime={selectedShowtime}
           seats={selectedSeats}
+          discount={discount}
+          setDiscount={setDiscount}
           onContinue={() => setStep(5)}
         />
       )}
@@ -125,6 +129,14 @@ export default function SelectMovieButton({ selectedMovie }: SelectMovieProps) {
         >
           Confirm Booking
         </Button>
+      )}
+      {step === 6 && (
+<ConfirmationPage
+movie={selectedMovie}
+discount={discount}
+seats={selectedSeats}
+showtime={selectedShowtime}
+confirmationNumber={confirmationNumber}></ConfirmationPage>
       )}
     </div>
   );

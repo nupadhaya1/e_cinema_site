@@ -1,3 +1,5 @@
+"use client";
+
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import CreditCard from "./CreditCard";
 import { Button } from "../ui/button";
@@ -60,6 +62,7 @@ export default function SelectCreditCard({
     console.log(event.currentTarget.id);
   }
 
+ 
   return (
     <>
       <Card>
