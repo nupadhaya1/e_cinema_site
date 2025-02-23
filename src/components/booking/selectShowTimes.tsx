@@ -1,6 +1,6 @@
 import { Button } from "../ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
-import { Movie } from "./selectMovieButton"
+import { Movie } from "./SelectMovieButton"
 import { useEffect, useState } from "react"
 
 export type Showtime = {

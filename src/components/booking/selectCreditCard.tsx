@@ -1,22 +1,52 @@
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import CreditCardComponent from "./creditcard";
-import { CreditCard } from "./creditcard";
+import CreditCard from "./CreditCard";
 import { Button } from "../ui/button";
 import { useState } from "react";
-import CreditCardForm from "./cardForm";
+import CreditCardForm from "./EnterCreditCardInfo";
 
 type SelectCreditCardProps = {
-  cards: CreditCard[];
   selectedCard: string | null;
   setSelectedCard: (e:string) => void;
+  disableButtons?: boolean;
 };
 
+
+
+export function getCreditCards() {
+  return [
+    {
+      id: 1,
+      cardNumber: 1111111111111111,
+      cardName: "bob",
+      cardType: "visa",
+      exp: "01/28",
+    },
+    {
+      id: 2,
+      cardNumber: 111111111111111,
+      cardName: "bob",
+      cardType: "visa",
+      exp: "01/28",
+    },
+    // {
+    //   id: 3,
+    //   cardNumber: 12222222222222,
+    //   cardName: "bob",
+    //   cardType: "visa",
+    //   exp: "01/28",
+    // },
+  ];
+}
+
 export default function SelectCreditCard({
-  cards,
+  //cards,
   selectedCard,
-  setSelectedCard
+  setSelectedCard, 
+  disableButtons=false
 }: SelectCreditCardProps) {
   const [addCard, setAddCard] = useState(false);
+
+  let cards = getCreditCards();
 
   function onAddCard() {
     setAddCard(true);
@@ -26,7 +56,6 @@ export default function SelectCreditCard({
   }
 
   function onClick(event: React.MouseEvent<HTMLButtonElement>) {
-    //onSelectCard(event.currentTarget.id);
     setSelectedCard(event.currentTarget.id);
     console.log(event.currentTarget.id);
   }
@@ -46,14 +75,15 @@ export default function SelectCreditCard({
                 id={"" + card.id}
                 onClick={onClick}
                 className={"flex w-96 flex-row justify-between p-1"}
+                disabled={disableButtons}
               >
-                <CreditCardComponent
+                <CreditCard
                   card={card}
                   className={
                     "w-80 " +
                     ("" + card.id === selectedCard ? "bg-green-300" : "")
                   }
-                ></CreditCardComponent>
+                ></CreditCard>
               </button>
             ))}
           </div>

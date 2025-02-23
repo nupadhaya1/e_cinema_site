@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { ShowtimeSelection } from "./selectShowTimes";
-import { SeatSelection } from "./selectSeats";
-import BookingSummary from "./bookingConfirmation";
+import { ShowtimeSelection } from "./SelectShowTimes";
+import { SeatSelection } from "./SelectSeats";
+import BookingSummary from "./SubmitBookingComponent";
 import { Button } from "../ui/button";
-import { Showtime } from "./selectShowTimes";
-import { Seat } from "./selectSeats";
+import { Showtime } from "./SelectShowTimes";
+import { Seat } from "./SelectSeats";
+import SelectCreditCard from "./SelectCreditCard";
 
 export type Movie = {
   id: number;
@@ -25,6 +26,22 @@ export default function SelectMovieButton({ selectedMovie }: SelectMovieProps) {
   );
   const [selectedSeats, setSelectedSeats] = useState<Seat[]>([]);
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
+
+  //TODO:
+  function handleConfirmBooking() {
+    // Here you would typically send the booking data to your backend
+    console.log("Booking confirmed:", {
+      selectedMovie,
+      selectedShowtime,
+      selectedSeats,
+      selectedCard,
+    });
+    alert("Booking confirmed!");
+    // Reset the booking process
+    // setStep(1)
+    // setSelectedShowtime(null)
+    // setSelectedSeats([])
+  }
 
   function handleSelectShowtime(showtime: Showtime) {
     setSelectedShowtime(showtime);
@@ -53,22 +70,6 @@ export default function SelectMovieButton({ selectedMovie }: SelectMovieProps) {
     setStep(1);
     setSelectedSeats([]);
     setSelectedShowtime(null);
-  }
-
-  //TODO:
-  function handleConfirmBooking() {
-    // Here you would typically send the booking data to your backend
-    console.log("Booking confirmed:", {
-      selectedMovie,
-      selectedShowtime,
-      selectedSeats,
-      selectedCard,
-    });
-    alert("Booking confirmed!");
-    // Reset the booking process
-    // setStep(1)
-    // setSelectedShowtime(null)
-    // setSelectedSeats([])
   }
 
   return (
@@ -107,10 +108,23 @@ export default function SelectMovieButton({ selectedMovie }: SelectMovieProps) {
           movie={selectedMovie}
           showtime={selectedShowtime}
           seats={selectedSeats}
-          onConfirm={handleConfirmBooking}
+          onContinue={() => setStep(5)}
+        />
+      )}
+      {step === 5 && (
+        <SelectCreditCard
           selectedCard={selectedCard}
           setSelectedCard={setSelectedCard}
-        />
+        ></SelectCreditCard>
+      )}
+      {step === 5 && (
+        <Button
+          onClick={handleConfirmBooking}
+          className="mt-4 w-full"
+          disabled={selectedCard === null}
+        >
+          Confirm Booking
+        </Button>
       )}
     </div>
   );

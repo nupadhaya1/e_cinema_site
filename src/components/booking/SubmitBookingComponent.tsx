@@ -1,19 +1,15 @@
 import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import { Movie } from "./selectMovieButton";
-import { Showtime } from "./selectShowTimes";
-import { Seat } from "./selectSeats";
-import SelectCreditCard from "./selectCreditCard";
-import { useState } from "react";
+import { Movie } from "./SelectMovieButton";
+import { Showtime } from "./SelectShowTimes";
+import { Seat } from "./SelectSeats";
 
 
 type BookingSummaryProps = {
   movie: Movie;
   showtime: Showtime;
   seats: Seat[];
-  onConfirm: () => void;
-  selectedCard: string | null;
-  setSelectedCard: (e:string) => void;
+  onContinue: () => void;
 };
 
 type Price = {
@@ -25,40 +21,12 @@ type Price = {
 function getPrices(movie: Movie) {
   return { adult: 20.0, child: 15.0, senior: 10.0 };
 }
-//TODO:
-function getCreditCards() {
-  return [
-    {
-      id: 1,
-      cardNumber: 1111111111111111,
-      cardName: "bob",
-      cardType: "visa",
-      exp: "01/28",
-    },
-    {
-      id: 2,
-      cardNumber: 111111111111111,
-      cardName: "bob",
-      cardType: "visa",
-      exp: "01/28",
-    },
-    {
-      id: 3,
-      cardNumber: 12222222222222,
-      cardName: "bob",
-      cardType: "visa",
-      exp: "01/28",
-    },
-  ];
-}
 
 export default function BookingSummary({
   movie,
   showtime,
   seats,
-  onConfirm,
-  selectedCard,
-  setSelectedCard
+  onContinue,
 }: BookingSummaryProps) {
   let prices = getPrices(movie);
   let subtotal = 0;
@@ -98,14 +66,9 @@ export default function BookingSummary({
             {"Total: $" + subtotal.toFixed(2)}
           </div>
         </div>
-        <SelectCreditCard
-          cards={getCreditCards()}
-          selectedCard={selectedCard}
-          setSelectedCard={setSelectedCard}
-        ></SelectCreditCard>
-        <Button onClick={onConfirm} className="mt-4 w-full" disabled={selectedCard === null}>
-          Confirm Booking
-        </Button>
+        <Button onClick={onContinue} className="mt-4 w-full">
+                Continue
+              </Button>
       </CardContent>
     </Card>
   );

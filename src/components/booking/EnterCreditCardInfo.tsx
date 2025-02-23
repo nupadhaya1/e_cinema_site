@@ -1,6 +1,6 @@
 //payment information (card type, number, and expiration date, and billing address)
 
-import { CreditCard } from "./creditcard";
+import { CreditCardInterface } from "./CreditCard";
 import { Button } from "../ui/button";
 import { useState } from "react";
 import {
@@ -18,7 +18,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "../ui/input";
 
 type CreditCardFormProps = {
-  cards: CreditCard[];
+  cards: CreditCardInterface[];
 };
 
 const formSchema = z

@@ -1,11 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 
 type CreditCardProps = {
-    card: CreditCard
+    card: CreditCardInterface
     className?: string
 };
 
-export interface CreditCard  {
+export interface CreditCardInterface  {
     id: number;
     cardNumber: number;
     cardName: string;
@@ -13,7 +13,7 @@ export interface CreditCard  {
     exp: string;
 }
 
-export default function CreditCardComponent({card, className}: CreditCardProps) {
+export default function CreditCard({card, className}: CreditCardProps) {
   return (
     <Card  className={className}>
       <CardHeader>
