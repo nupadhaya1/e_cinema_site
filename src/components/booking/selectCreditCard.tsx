@@ -1,18 +1,16 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import CreditCard from "./CreditCard";
+import CreditCard from "./creditcard";
 import { Button } from "../ui/button";
 import { useState } from "react";
 import CreditCardForm from "./EnterCreditCardInfo";
 
 type SelectCreditCardProps = {
   selectedCard: string | null;
-  setSelectedCard: (e:string) => void;
+  setSelectedCard: (e: string) => void;
   disableButtons?: boolean;
 };
-
-
 
 export function getCreditCards() {
   return [
@@ -43,8 +41,8 @@ export function getCreditCards() {
 export default function SelectCreditCard({
   //cards,
   selectedCard,
-  setSelectedCard, 
-  disableButtons=false
+  setSelectedCard,
+  disableButtons = false,
 }: SelectCreditCardProps) {
   const [addCard, setAddCard] = useState(false);
 
@@ -62,7 +60,6 @@ export default function SelectCreditCard({
     console.log(event.currentTarget.id);
   }
 
- 
   return (
     <>
       <Card>
