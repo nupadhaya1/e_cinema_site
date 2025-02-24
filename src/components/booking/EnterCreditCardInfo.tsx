@@ -21,21 +21,20 @@ type CreditCardFormProps = {
   cards: CreditCardInterface[];
 };
 
-const formSchema = z
-  .object({
-    cardNumber: z
-      .string()
-      .regex(/^\d{13,19}$/, "Card number must be between 13 and 19 digits"),
-    name: z.string().min(1, "Name is required"),
-    exp: z
-      .string()
-      .regex(
-        /^(0[1-9]|1[0-2])\/(\d{2})$/,
-        "Invalid expiration date. Format as MM/YY",
-      ),
-    address: z.string().min(1, "Address is required"),
-    cardType: z.enum(["visa", "mastercard", "discover", "amex"]),
-  });
+const formSchema = z.object({
+  cardNumber: z
+    .string()
+    .regex(/^\d{13,19}$/, "Card number must be between 13 and 19 digits"),
+  name: z.string().min(1, "Name is required"),
+  exp: z
+    .string()
+    .regex(
+      /^(0[1-9]|1[0-2])\/(\d{2})$/,
+      "Invalid expiration date. Format as MM/YY",
+    ),
+  address: z.string().min(1, "Address is required"),
+  cardType: z.enum(["visa", "mastercard", "discover", "amex"]),
+});
 
 export default function CreditCardForm() {
   const [addCard, setAddCard] = useState(false);
@@ -78,89 +77,89 @@ export default function CreditCardForm() {
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <FormField
-          control={form.control}
-          name="cardNumber"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Card Number</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+    <main className="pt-4">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <FormField
+            control={form.control}
+            name="cardNumber"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Card Number</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="exp"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Expiration Date</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="exp"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Expiration Date</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="cardType"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Card Type</FormLabel>
-              <FormControl>
-                <select {...field} className="w-full rounded border p-2">
-                  <option value="" >
-                    Select Card Type
-                  </option>
-                  <option value="visa">VISA</option>
-                  <option value="mastercard">MASTERCARD</option>
-                  <option value="discover">DISCOVER</option>
-                  <option value="amex">AMEX</option>
-                </select>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="cardType"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Card Type</FormLabel>
+                <FormControl>
+                  <select {...field} className="w-full rounded border p-2">
+                    <option value="">Select Card Type</option>
+                    <option value="visa">VISA</option>
+                    <option value="mastercard">MASTERCARD</option>
+                    <option value="discover">DISCOVER</option>
+                    <option value="amex">AMEX</option>
+                  </select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Name</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Name</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="address"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Address</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? "Submiting..." : "Submit"}
-        </Button>
-      </form>
-    </Form>
+          <FormField
+            control={form.control}
+            name="address"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Address</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? "Submiting..." : "Submit"}
+          </Button>
+        </form>
+      </Form>
+    </main>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Card, CardContent } from "../ui/card";
 import CreditCard from "./creditcard";
 import { Button } from "../ui/button";
 import { useState } from "react";
@@ -28,25 +28,17 @@ export function getCreditCards() {
       cardType: "visa",
       exp: "01/28",
     },
-    // {
-    //   id: 3,
-    //   cardNumber: 12222222222222,
-    //   cardName: "bob",
-    //   cardType: "visa",
-    //   exp: "01/28",
-    // },
   ];
 }
 
 export default function SelectCreditCard({
-  //cards,
   selectedCard,
   setSelectedCard,
   disableButtons = false,
 }: SelectCreditCardProps) {
   const [addCard, setAddCard] = useState(false);
 
-  let cards = getCreditCards();
+  const cards = getCreditCards();
 
   function onAddCard() {
     setAddCard(true);
@@ -61,50 +53,48 @@ export default function SelectCreditCard({
   }
 
   return (
-    <>
-      <Card>
-        <CardHeader>
-          <CardTitle>Cards</CardTitle>
-        </CardHeader>
-
-        <CardContent>
-          <div className="flex flex-col lg:flex-row">
+    <main className="w-full space-y-4">
+      <Card className="p-4">
+        <h1 className="">Payment Methods</h1>
+        <CardContent className="">
+          {/* Changed flex container to vertical list */}
+          <div className="flex flex-col">
             {cards.map((card) => (
               <button
                 key={card.id}
                 id={"" + card.id}
                 onClick={onClick}
-                className={"flex w-96 flex-row justify-between p-1"}
+                className="flex w-full flex-row justify-between p-2"
                 disabled={disableButtons}
               >
                 <CreditCard
                   card={card}
                   className={
-                    "w-80 " +
+                    "w-full " +
                     ("" + card.id === selectedCard ? "bg-green-300" : "")
                   }
-                ></CreditCard>
+                />
               </button>
             ))}
           </div>
         </CardContent>
-      </Card>
-      <div className="flex flex-row gap-1">
-        <Button
-          onClick={onAddCard}
-          className="mt-4"
-          disabled={addCard || cards.length >= 3}
-        >
-          Add Card
-        </Button>
-        {addCard && (
-          <Button onClick={handleCancel} className="mt-4">
-            Cancel
+        <div className="flex flex-row gap-1">
+          <Button
+            onClick={onAddCard}
+            className=""
+            disabled={addCard || cards.length >= 3}
+          >
+            Add Card
           </Button>
-        )}
-      </div>
+          {addCard && (
+            <Button onClick={handleCancel} className="">
+              Cancel
+            </Button>
+          )}
+        </div>
 
-      {addCard && <CreditCardForm></CreditCardForm>}
-    </>
+        {addCard && <CreditCardForm />}
+      </Card>
+    </main>
   );
 }

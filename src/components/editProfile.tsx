@@ -111,84 +111,13 @@ export default function EditProfileForm() {
   }
 
   return (
-    <>
+    <main className="w-11/12 space-y-4">
+      <h1 className="text-l font-bold">Edit Profile</h1>
+      <hr className="" />
       <Card>
-        <CardHeader>
-          <CardTitle></CardTitle>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="p-4">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input type="email" {...field} readOnly />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="currentPassword"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Current Password</FormLabel>
-                    <FormControl>
-                      <Input type="password" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="newPassword"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>New Password</FormLabel>
-                    <FormControl>
-                      <Input type="password" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="confirmPassword"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Confirm New Password</FormLabel>
-                    <FormControl>
-                      <Input type="password" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Name</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
               <FormField
                 control={form.control}
                 name="phoneNumber"
@@ -222,7 +151,9 @@ export default function EditProfileForm() {
                 name="promotions"
                 render={({ field }) => (
                   <FormItem className="flex items-center space-x-2">
-                    <FormLabel>Sign up for promotions?</FormLabel>
+                    <FormLabel className="mt-2">
+                      Sign up for promotions?
+                    </FormLabel>
                     <FormControl>
                       <Checkbox
                         checked={field.value}
@@ -242,19 +173,11 @@ export default function EditProfileForm() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle></CardTitle>
-        </CardHeader>
-
-        <CardContent>
-          <SelectCreditCard
-            selectedCard={selectedCard}
-            setSelectedCard={() => {}}
-            disableButtons={true}
-          ></SelectCreditCard>
-        </CardContent>
-      </Card>
-    </>
+      <SelectCreditCard
+        selectedCard={selectedCard}
+        setSelectedCard={() => {}}
+        disableButtons={true}
+      ></SelectCreditCard>
+    </main>
   );
 }
