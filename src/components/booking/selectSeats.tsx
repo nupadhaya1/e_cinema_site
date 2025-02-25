@@ -67,10 +67,9 @@ export function SeatSelection({
   //to remember what seats were selected if back button press on booking conifrmation page
   useEffect(() => {
     setSeats(
-      seats.map((seat) =>
-        selected_seats.some((s) => s.id === seat.id) && !seat.taken
-          ? { ...seat, selected: !seat.selected }
-          : seat,
+      seats.map((seat) => {
+        let s = selected_seats.find((s) => s.id === seat.id);
+      return !seat.taken && s !== undefined ? {...s} : seat},
       ),
     );
   }, []);
@@ -108,7 +107,7 @@ export function SeatSelection({
                 onValueChange={(value) => updateAgeCategory(seat.id, value)}
               >
                 <SelectTrigger className="w-32">
-                  <SelectValue placeholder="Adult" />
+                  <SelectValue placeholder={seat.ageCategory.charAt(0).toUpperCase() + seat.ageCategory.slice(1)} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="adult">Adult</SelectItem>
