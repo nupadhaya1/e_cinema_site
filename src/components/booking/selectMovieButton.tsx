@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { ShowtimeSelection } from "./SelectShowTimes";
-import { SeatSelection } from "./SelectSeats";
+import { ShowtimeSelection } from "./selectShowTimes";
+import { SeatSelection } from "./selectSeats";
 import BookingSummary from "./BookingSummary";
 import { Button } from "../ui/button";
-import { Showtime } from "./SelectShowTimes";
-import { Seat } from "./SelectSeats";
-import SelectCreditCard from "./SelectCreditCard";
+import { Showtime } from "./selectShowTimes";
+import { Seat } from "./selectSeats";
+import SelectCreditCard from "./selectCreditCard";
 import ConfirmationPage from "./ConfirmationPage";
 
 export type Movie = {
@@ -39,10 +39,9 @@ export default function SelectMovieButton({ selectedMovie }: SelectMovieProps) {
       selectedSeats,
       selectedCard,
     });
-    setConfirmationNumber(Math.floor(Math.random() * 100000000))
+    setConfirmationNumber(Math.floor(Math.random() * 100000000));
     setStep(6);
     //alert("Booking confirmed!");
-
   }
 
   function handleSelectShowtime(showtime: Showtime) {
@@ -82,7 +81,7 @@ export default function SelectMovieButton({ selectedMovie }: SelectMovieProps) {
         </Button>
       )}
 
-      {(step !== 1 && step !== 6) && (
+      {step !== 1 && step !== 6 && (
         <div className="flex flex-row gap-1">
           <Button onClick={handleBackButton} className="w-full">
             Back
@@ -131,12 +130,13 @@ export default function SelectMovieButton({ selectedMovie }: SelectMovieProps) {
         </Button>
       )}
       {step === 6 && (
-<ConfirmationPage
-movie={selectedMovie}
-discount={discount}
-seats={selectedSeats}
-showtime={selectedShowtime}
-confirmationNumber={confirmationNumber}></ConfirmationPage>
+        <ConfirmationPage
+          movie={selectedMovie}
+          discount={discount}
+          seats={selectedSeats}
+          showtime={selectedShowtime}
+          confirmationNumber={confirmationNumber}
+        ></ConfirmationPage>
       )}
     </div>
   );
