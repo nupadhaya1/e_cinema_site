@@ -1,8 +1,5 @@
-// import SelectMovieButton from "~/components/booking/SelectMovieButton";
-// import { Movie } from "~/components/booking/SelectMovieButton";
-
-import SelectMovieButton from "~/components/booking/SelectMovieButton";
-import { Movie } from "~/components/booking/SelectMovieButton";
+import SelectMovieButton from "~/components/booking/selectMovieButton";
+import { Movie } from "~/components/booking/selectMovieButton";
 
 const m: Movie = {
   id: 1,
