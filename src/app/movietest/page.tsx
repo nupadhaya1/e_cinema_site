@@ -1,3 +1,6 @@
+// import SelectMovieButton from "~/components/booking/SelectMovieButton";
+// import { Movie } from "~/components/booking/SelectMovieButton";
+
 import SelectMovieButton from "~/components/booking/SelectMovieButton";
 import { Movie } from "~/components/booking/SelectMovieButton";
 
