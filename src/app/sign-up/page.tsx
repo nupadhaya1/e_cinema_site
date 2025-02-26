@@ -1,7 +1,6 @@
 "use client";
 
 import type React from "react";
-
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { CreditCard, Phone } from "lucide-react";
@@ -28,17 +27,26 @@ export default function SignUpForm() {
     setIsLoading(true);
 
     const formData = new FormData(e.currentTarget);
-    const phone = formData.get("phone") as string;
+    // const phone = formData.get("phone") as string;
 
-    if (!phone) {
+    // if (!phone) {
+    //   setIsLoading(false);
+    //   return;
+    // }
+
+    // Simulate any client-side work, e.g., phone validation or additional logic
+    // await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    // Call the API route to add the user to the database
+    const res = await fetch("/api/users", { method: "POST" });
+    if (!res.ok) {
+      // Optionally, handle errors here
+      console.error("Failed to add user:", await res.json());
       setIsLoading(false);
       return;
     }
 
-    // Simulate form submission
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    // Redirect to home page
+    // Redirect to home page after successful account creation
     router.push("/");
   };
 
@@ -125,12 +133,7 @@ export default function SignUpForm() {
             </div>
           </CardContent>
           <CardFooter>
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isLoading}
-              onClick={() => router.push("/")}
-            >
+            <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? "Creating account..." : "Complete Sign Up"}
             </Button>
           </CardFooter>

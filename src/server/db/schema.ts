@@ -6,8 +6,8 @@ import {
   index,
   pgTableCreator,
   serial,
-  timestamp,
   varchar,
+  boolean,
 } from "drizzle-orm/pg-core";
 
 /**
@@ -29,3 +29,8 @@ export const movies = createTable(
     nameIndex: index("name_idx").on(example.name),
   }),
 );
+
+export const users = createTable("users", {
+  userID: varchar("userID", { length: 256 }).primaryKey(),
+  isAdmin: boolean("isAdmin").default(false),
+});
