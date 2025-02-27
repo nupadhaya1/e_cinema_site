@@ -22,7 +22,7 @@ type SelectMovieProps = {
 };
 
 export default function SelectMovieButton({ selectedMovie }: SelectMovieProps) {
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(2);
   const [selectedShowtime, setSelectedShowtime] = useState<Showtime | null>(
     null,
   );
@@ -72,27 +72,29 @@ export default function SelectMovieButton({ selectedMovie }: SelectMovieProps) {
 
   function handleCancel() {
     setSelectedCard(null);
-    setStep(1);
+    setStep(2);
     setSelectedSeats([]);
     setSelectedShowtime(null);
   }
 
   return (
     <div className="container mx-auto p-4">
-      {step === 1 && (
+      {/* {step === 1 && (
         <Button onClick={() => setStep(2)} className="w-full">
           Select Movie
         </Button>
-      )}
+      )} */}
 
       {step !== 1 && step !== 6 && (
         <div className="mb-2 flex flex-row gap-1">
           <Button onClick={handleBackButton} className="w-full">
             Back
           </Button>
-          <Button onClick={handleCancel} className="w-full">
-            Cancel
-          </Button>
+          {step > 2 && (
+            <Button onClick={handleCancel} className="w-full">
+              Cancel
+            </Button>
+          )}
         </div>
       )}
 

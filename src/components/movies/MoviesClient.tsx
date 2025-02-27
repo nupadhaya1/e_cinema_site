@@ -69,7 +69,12 @@ function MoviesClient({ movies }: { movies: any[] }) {
                     asChild
                     className="flex items-center gap-2 bg-orange-500 text-white hover:bg-orange-600"
                   >
-                    <Link href="/movie_booking">
+                    <Link
+                      href={{
+                        pathname: "/movie_booking",
+                        query: { name: movie.name, url: movie.url },
+                      }}
+                    >
                       <Plus className="h-4" />
                       Book Ticket
                     </Link>
@@ -114,7 +119,12 @@ function MoviesClient({ movies }: { movies: any[] }) {
                     asChild
                     className="flex items-center gap-2 bg-orange-500 text-white hover:bg-orange-600"
                   >
-                    <Link href="/movie_booking">
+                    <Link
+                      href={{
+                        pathname: "/movie_booking",
+                        query: { name: movie.name, url: movie.url },
+                      }}
+                    >
                       <Plus className="h-4" />
                       Book Ticket
                     </Link>
