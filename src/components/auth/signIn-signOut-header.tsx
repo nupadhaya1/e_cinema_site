@@ -56,7 +56,7 @@ export default function SignInSignOutHeader() {
   const { user } = useUser();
   return (
     <main>
-      <header className="flex h-16 items-center justify-end gap-4 p-4">
+      <header className="flex h-16 items-center justify-end gap-4 bg-gray-200 p-4">
         <SignedOut>
           <SignInButton>
             <Button variant="outline" className="flex items-center gap-2">
@@ -72,6 +72,11 @@ export default function SignInSignOutHeader() {
           </SignUpButton>
         </SignedOut>
         <SignedIn>
+          {user && (
+            <div className="text-sm font-medium text-gray-700">
+              Hello, {user.firstName}!
+            </div>
+          )}
           <UserButton>
             <UserButton.UserProfilePage
               label="Additional Settings"
@@ -81,11 +86,7 @@ export default function SignInSignOutHeader() {
               <EditProfileForm />
             </UserButton.UserProfilePage>
           </UserButton>
-          {user && (
-            <div className="text-sm font-medium text-gray-700">
-              Hello, {user.firstName}!
-            </div>
-          )}
+
           <AdminStatus />
         </SignedIn>
       </header>

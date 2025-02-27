@@ -4,6 +4,7 @@ import { type Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 
 import SignInSignOutHeader from "~/components/auth/signIn-signOut-header";
+import { Toaster } from "~/components/ui/sonner";
 
 export const metadata: Metadata = {
   title: "E-Cinema Booking",
@@ -20,6 +21,7 @@ export default function RootLayout({
         <body>
           <SignInSignOutHeader />
           {children}
+          <Toaster />
         </body>
       </html>
     </ClerkProvider>

@@ -14,6 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
+import { toast } from "sonner";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Separator } from "~/components/ui/separator";
@@ -45,6 +46,8 @@ export default function SignUpForm() {
       setIsLoading(false);
       return;
     }
+
+    toast.success("Account created successfully!");
 
     // Redirect to home page after successful account creation
     router.push("/");
