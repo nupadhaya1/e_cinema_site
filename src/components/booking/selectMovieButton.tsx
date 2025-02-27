@@ -9,6 +9,7 @@ import { Showtime } from "./selectShowTimes";
 import { Seat } from "./selectSeats";
 import SelectCreditCard from "./selectCreditCard";
 import ConfirmationPage from "./ConfirmationPage";
+import { useRouter } from "next/navigation";
 
 export type Movie = {
   id: number;
@@ -29,6 +30,8 @@ export default function SelectMovieButton({ selectedMovie }: SelectMovieProps) {
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const [discount, setDiscount] = useState<Number>(0.0);
   const [confirmationNumber, setConfirmationNumber] = useState<Number>(-1);
+
+  const router = useRouter();
 
   //TODO:
   function handleConfirmBooking() {
@@ -56,8 +59,9 @@ export default function SelectMovieButton({ selectedMovie }: SelectMovieProps) {
 
   function handleBackButton() {
     if (step == 2) {
-      setSelectedShowtime(null);
+      // setSelectedShowtime(null);
       //setSelectedSeats([]);
+      router.push("/");
     }
     if (step == 3) {
       setSelectedSeats([]);
@@ -82,7 +86,7 @@ export default function SelectMovieButton({ selectedMovie }: SelectMovieProps) {
       )}
 
       {step !== 1 && step !== 6 && (
-        <div className="flex flex-row gap-1">
+        <div className="mb-2 flex flex-row gap-1">
           <Button onClick={handleBackButton} className="w-full">
             Back
           </Button>

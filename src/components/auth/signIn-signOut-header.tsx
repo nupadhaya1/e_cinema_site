@@ -12,7 +12,7 @@ import {
 } from "@clerk/nextjs";
 
 import { Button } from "~/components/ui/button";
-import { UserCog, UserCircle2, Settings } from "lucide-react";
+import { UserCog, UserCircle2, Settings, HomeIcon } from "lucide-react";
 import EditProfileForm from "~/components/editProfile";
 
 function AdminStatus() {
@@ -38,17 +38,24 @@ function AdminStatus() {
   }, []);
 
   return (
-    isAdmin && (
-      <Button
-        asChild
-        className="flex items-center gap-2 bg-orange-500 text-white hover:bg-orange-600"
-      >
-        <Link href="/admin">
-          <UserCog className="h-4 w-4" />
-          Admin Dashboard
+    <div className="flex items-center gap-4">
+      {isAdmin && (
+        <Button
+          asChild
+          className="flex items-center gap-2 bg-orange-500 text-white hover:bg-orange-600"
+        >
+          <Link href="/admin">
+            <UserCog className="h-4 w-4" />
+            Admin Dashboard
+          </Link>
+        </Button>
+      )}
+      <Button asChild className="">
+        <Link href="/">
+          <HomeIcon className="h-4 w-4" />
         </Link>
       </Button>
-    )
+    </div>
   );
 }
 
