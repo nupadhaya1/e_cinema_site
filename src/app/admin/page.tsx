@@ -22,19 +22,19 @@ const dashboardItems = [
     title: "Manage Movies",
     description: "Add, edit, and delete movies",
     icon: Film,
-    href: "/movies",
+    href: "admin/movies",
+  },
+  {
+    title: "Manage Pricing and Promotions",
+    description: "Create and manage promotional offers. Edit ticket prices.",
+    icon: Tag,
+    href: "admin/pricing_promotions/tickets",
   },
   {
     title: "Manage Users",
     description: "Manage user accounts and permissions",
     icon: Users,
-    href: "/users",
-  },
-  {
-    title: "Manage Promotions",
-    description: "Create and manage promotional offers",
-    icon: Tag,
-    href: "/promotions",
+    href: "/admin/users",
   },
 ];
 
@@ -50,7 +50,7 @@ export default function AdminDashboard() {
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem>
-                  <BreadcrumbLink href="/admin">Admin</BreadcrumbLink>
+                  <BreadcrumbPage>Admin</BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
