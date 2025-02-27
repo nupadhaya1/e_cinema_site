@@ -1,9 +1,11 @@
 "use client";
+
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import SelectMovieButton from "~/components/booking/selectMovieButton";
 import { Movie } from "~/components/booking/selectMovieButton";
 
-export default function P() {
+function MovieComponent() {
   const searchParams = useSearchParams();
   const name = searchParams.get("name");
   const url = searchParams.get("url");
@@ -19,5 +21,13 @@ export default function P() {
     <div>
       <SelectMovieButton selectedMovie={m} />
     </div>
+  );
+}
+
+export default function P() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <MovieComponent />
+    </Suspense>
   );
 }
