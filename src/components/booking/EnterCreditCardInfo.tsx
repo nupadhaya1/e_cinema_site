@@ -1,6 +1,6 @@
 //payment information (card type, number, and expiration date, and billing address)
 
-import { CreditCardInterface } from "./CreditCard";
+import { CreditCardInterface } from "./creditcard";
 import { Button } from "../ui/button";
 import { useState } from "react";
 import {
@@ -25,7 +25,7 @@ const formSchema = z.object({
   cardNumber: z
     .string()
     .regex(/^\d{13,19}$/, "Card number must be between 13 and 19 digits"),
-  name: z.string().min(1, "Name is required"),
+  cardName: z.string().min(1, "Name is required"),
   exp: z
     .string()
     .regex(
@@ -45,7 +45,7 @@ export default function CreditCardForm() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       cardNumber: "",
-      name: "",
+      cardName: "",
       exp: "",
       address: "",
     },
@@ -58,13 +58,15 @@ export default function CreditCardForm() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     console.log(values);
+    console.log(JSON.stringify(values));
     try {
-      //   await updateProfile(values);
-      //   toast({
-      //     title: "Profile updated",
-      //     description: "Your profile has been successfully updated.",
-      //   });
-      //   form.reset();
+      const response = await fetch("/api/creditcard", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(values),
+      });
     } catch (error) {
       toast({
         title: "Error",
@@ -130,7 +132,7 @@ export default function CreditCardForm() {
 
           <FormField
             control={form.control}
-            name="name"
+            name="cardName"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Name</FormLabel>

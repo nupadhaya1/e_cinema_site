@@ -42,7 +42,6 @@ const formSchema = z
   });
 
 export default function EditProfileForm() {
-  let selectedCard = null;
   const [isLoading, setIsLoading] = useState(false);
   const [user, setUser] = useState();
   const { toast } = useToast();
@@ -174,7 +173,7 @@ export default function EditProfileForm() {
       </Card>
 
       <SelectCreditCard
-        selectedCard={selectedCard}
+        selectedCard={null}
         setSelectedCard={() => {}}
         disableButtons={true}
       ></SelectCreditCard>

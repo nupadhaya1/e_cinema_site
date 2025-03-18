@@ -9,7 +9,7 @@ type CreditCardProps = {
 
 export interface CreditCardInterface {
   id: number;
-  cardNumber: number;
+  cardNumber: bigint;
   cardName: string;
   cardType: string;
   exp: string;

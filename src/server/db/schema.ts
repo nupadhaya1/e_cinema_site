@@ -2,13 +2,18 @@
 // https://orm.drizzle.team/docs/sql-schema-declaration
 
 
-import { sql } from "drizzle-orm";
+import { config } from "dotenv";
+import { sql, relations } from "drizzle-orm";
 import {
  index,
  pgTableCreator,
  serial,
  varchar,
  boolean,
+ text,
+ uuid,
+ integer,
+ bigint
 } from "drizzle-orm/pg-core";
 
 
@@ -49,3 +54,25 @@ export const users = createTable("users", {
  userID: varchar("userID", { length: 256 }).primaryKey(),
  isAdmin: boolean("isAdmin").default(false),
 });
+
+
+export const creditCards = createTable("credit_cards", {
+  id: uuid("id").defaultRandom().unique().primaryKey(),
+  userID: varchar("userID",{length: 256})
+    .notNull()
+    .references(() => users.userID, { onDelete: "cascade" }),
+  cardNumber: text("cardNumber").notNull(),
+  cardName: text("cardName").notNull(),
+  cardType: text("cardType").notNull(), 
+  exp: text("exp").notNull(), 
+  address: text("address").notNull(),
+
+});
+
+// Define one-to-many relationship
+export const usersRelations = relations(users, ({ many }) => ({
+  creditCards: many(creditCards),
+}));
+export const creditCardsRelations = relations(creditCards, ({ one }) => ({
+  user: one(users, { fields: [creditCards.userID], references: [users.userID] }),
+}));

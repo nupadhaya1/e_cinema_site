@@ -5,6 +5,8 @@ import CreditCard from "./creditcard";
 import { Button } from "../ui/button";
 import { useState } from "react";
 import CreditCardForm from "./EnterCreditCardInfo";
+import { CreditCardInterface } from "./creditcard";
+import { useEffect } from "react";
 
 type SelectCreditCardProps = {
   selectedCard: string | null;
@@ -12,24 +14,24 @@ type SelectCreditCardProps = {
   disableButtons?: boolean;
 };
 
-export function getCreditCards() {
-  return [
-    {
-      id: 1,
-      cardNumber: 1111111111111111,
-      cardName: "bob",
-      cardType: "visa",
-      exp: "01/28",
-    },
-    {
-      id: 2,
-      cardNumber: 111111111111111,
-      cardName: "bob",
-      cardType: "visa",
-      exp: "01/28",
-    },
-  ];
-}
+// export function getCreditCards() {
+//   return [
+//     {
+//       id: 1,
+//       cardNumber: 1111111111111111,
+//       cardName: "bob",
+//       cardType: "visa",
+//       exp: "01/28",
+//     },
+//     {
+//       id: 2,
+//       cardNumber: 111111111111111,
+//       cardName: "bob",
+//       cardType: "visa",
+//       exp: "01/28",
+//     },
+//   ];
+// }
 
 export default function SelectCreditCard({
   selectedCard,
@@ -37,8 +39,20 @@ export default function SelectCreditCard({
   disableButtons = false,
 }: SelectCreditCardProps) {
   const [addCard, setAddCard] = useState(false);
+  const [cards, setCards] = useState<CreditCardInterface[]>();
+  const [numCards, setNumCards] = useState<number | null>();
 
-  const cards = getCreditCards();
+  useEffect(() => {
+    // Fetch data when the component mounts
+    const fetchData = async () => {
+      const response = await fetch("/api/creditcard");
+      const result = await response.json();
+      setCards(result);
+    };
+
+    fetchData();
+    setNumCards(cards?.length)
+  }, [numCards]);  // Empty dependency array, runs only once on mount
 
   function onAddCard() {
     setAddCard(true);
@@ -59,7 +73,8 @@ export default function SelectCreditCard({
         <CardContent className="">
           {/* Changed flex container to vertical list */}
           <div className="flex flex-col">
-            {cards.map((card) => (
+           
+            {cards != null && cards.map((card) => (
               <button
                 key={card.id}
                 id={"" + card.id}
@@ -82,7 +97,7 @@ export default function SelectCreditCard({
           <Button
             onClick={onAddCard}
             className=""
-            disabled={addCard || cards.length >= 3}
+            disabled={addCard || (numCards != null && numCards >= 3)}
           >
             Add Card
           </Button>
