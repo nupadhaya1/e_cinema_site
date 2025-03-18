@@ -9,6 +9,7 @@ import { CreditCardInterface } from "./creditcard";
 import { useEffect } from "react";
 import { Trash } from "lucide-react";
 
+const MAXNUMCARDS = 4; 
 
 type SelectCreditCardProps = {
   selectedCard: string | null;
@@ -104,7 +105,7 @@ export default function SelectCreditCard({
           <Button
             onClick={onAddCard}
             className=""
-            disabled={addCard || (cards != null && cards.length >= 3)}
+            disabled={addCard || (cards != null && cards.length >= MAXNUMCARDS)}
           >
             Add Card
           </Button>
