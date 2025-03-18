@@ -18,7 +18,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "../ui/input";
 
 type CreditCardFormProps = {
-  cards: CreditCardInterface[];
+  refresh: boolean; //triggers the parent useEffect
+  setRefresh: (e: boolean) => void;
 };
 
 const formSchema = z.object({
@@ -36,8 +37,7 @@ const formSchema = z.object({
   cardType: z.enum(["visa", "mastercard", "discover", "amex"]),
 });
 
-export default function CreditCardForm() {
-  const [addCard, setAddCard] = useState(false);
+export default function CreditCardForm({refresh, setRefresh}: CreditCardFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
@@ -51,9 +51,6 @@ export default function CreditCardForm() {
     },
   });
 
-  function onAddCard() {
-    setAddCard(true);
-  }
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
@@ -67,6 +64,7 @@ export default function CreditCardForm() {
         },
         body: JSON.stringify(values),
       });
+      setRefresh(true);
     } catch (error) {
       toast({
         title: "Error",
