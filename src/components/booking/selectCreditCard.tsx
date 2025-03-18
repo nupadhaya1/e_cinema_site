@@ -93,7 +93,7 @@ export default function SelectCreditCard({
                       }
                     />
                   </button>
-                  <button type="button" onClick={() => handleDeleteCard(card)}>
+                  <button key={"deletebutton"+card.id} type="button" onClick={() => handleDeleteCard(card)}>
                     <Trash size={30} color="red" />
                   </button>
                 </div>
