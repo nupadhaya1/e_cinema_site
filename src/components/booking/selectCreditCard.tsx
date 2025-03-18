@@ -12,7 +12,7 @@ import { Trash } from "lucide-react";
 
 type SelectCreditCardProps = {
   selectedCard: string | null;
-  setSelectedCard: (e: string) => void;
+  setSelectedCard: (e: string | null) => void;
   disableButtons?: boolean;
 };
 
@@ -47,11 +47,12 @@ export default function SelectCreditCard({
 
   function onClick(event: React.MouseEvent<HTMLButtonElement>) {
     setSelectedCard(event.currentTarget.id);
-    console.log(event.currentTarget.id);
+    //console.log(event.currentTarget.id);
   }
 
   async function handleDeleteCard(card: CreditCardInterface) {
     //console.log("click");
+    setSelectedCard(null);
     try {
       const response = await fetch("/api/creditcard", {
         method: "POST",
