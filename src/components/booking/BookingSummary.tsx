@@ -127,74 +127,78 @@ export default function BookingSummary({
     }
   }
 
-  return ( prices != null &&
-    <Card>
-      <CardHeader>
-        <CardTitle>Booking Summary</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-2">
-          <p>
-            <strong>Movie:</strong> {movie.title}
-          </p>
-          <p>
-            <strong>Showtime:</strong> {showtime.time}
-          </p>
-          <p>
-            <strong>Seats:</strong>
-          </p>
-          <div className="flex flex-col">
-            {seats.map((seat) => (
-              <div key={seat.id} className="flex flex-row justify-between">
-                <div>
-                  {seat.row}
-                  {seat.number} ({seat.ageCategory})
+  return (
+    prices != null && (
+      <Card>
+        <CardHeader>
+          <CardTitle>Booking Summary</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            <p>
+              <strong>Movie:</strong> {movie.title}
+            </p>
+            <p>
+              <strong>Showtime:</strong> {showtime.time}
+            </p>
+            <p>
+              <strong>Seats:</strong>
+            </p>
+            <div className="flex flex-col">
+              {seats.map((seat) => (
+                <div key={seat.id} className="flex flex-row justify-between">
+                  <div>
+                    {seat.row}
+                    {seat.number} ({seat.ageCategory})
+                  </div>
+                  {"$" + prices![seat.ageCategory as keyof Price].toFixed(2)}
                 </div>
-                {"$" + prices![seat.ageCategory as keyof Price].toFixed(2)}
+              ))}
+            </div>
+
+            <div className="flex justify-end">
+              {"Subotal: $" + subtotal.toFixed(2)}
+            </div>
+            <div className="flex justify-end">
+              {`Tax(${taxPercentage.toFixed(2)}%): $${(subtotal * taxPercentage).toFixed(2)}`}
+            </div>
+
+            <div className="flex justify-end">
+              {`Discount: -$${discount.toFixed(2)}`}
+            </div>
+            <div className="flex justify-end">
+              {`Total: $${total.toFixed(2)}`}
+            </div>
+          </div>
+
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+              <FormField
+                control={form.control}
+                name="promotionCode"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Promotion Code?</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="flex flex-row justify-between">
+                <Button type="submit" disabled={isLoading || discount != 0}>
+                  {isLoading ? "Checking..." : "Apply Promotion Code"}
+                </Button>
+
+                <Button onClick={onContinue} className="">
+                  Continue
+                </Button>
               </div>
-            ))}
-          </div>
-
-          <div className="flex justify-end">
-            {"Subotal: $" + subtotal.toFixed(2)}
-          </div>
-          <div className="flex justify-end">
-            {`Tax(${taxPercentage.toFixed(2)}%): $${(subtotal * taxPercentage).toFixed(2)}`}
-          </div>
-
-          <div className="flex justify-end">
-            {`Discount: -$${discount.toFixed(2)}`}
-          </div>
-          <div className="flex justify-end">
-            {`Total: $${total.toFixed(2)}`}
-          </div>
-        </div>
-
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            <FormField
-              control={form.control}
-              name="promotionCode"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Promotion Code?</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button type="submit" disabled={isLoading || discount != 0}>
-              {isLoading ? "Checking..." : "Apply Promotion Code"}
-            </Button>
-          </form>
-        </Form>
-
-        <Button onClick={onContinue} className="mt-4 w-full">
-          Continue
-        </Button>
-      </CardContent>
-    </Card>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+    )
   );
 }

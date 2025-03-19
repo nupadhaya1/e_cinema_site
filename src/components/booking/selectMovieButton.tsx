@@ -83,10 +83,12 @@ export default function SelectMovieButton({ selectedMovie }: SelectMovieProps) {
   }
 
   function handleCancel() {
-    setSelectedCard(null);
-    setStep(2);
-    setSelectedSeats([]);
-    setSelectedShowtime(null);
+    // setSelectedCard(null);
+    // setStep(2);
+    // setSelectedSeats([]);
+    // setSelectedShowtime(null);
+    router.push("/");
+
   }
 
   return (
@@ -96,11 +98,11 @@ export default function SelectMovieButton({ selectedMovie }: SelectMovieProps) {
           <Button onClick={handleBackButton} className="w-full">
             Back
           </Button>
-          {step > 2 && (
-            <Button onClick={handleCancel} className="w-full">
-              Cancel
-            </Button>
-          )}
+          {step > 2 && step != 6 && (
+        <Button onClick={handleCancel} className="w-full bg-red-600 hover:bg-red-800">
+          Cancel
+        </Button>
+      )}
         </div>
       )}
 
@@ -133,9 +135,10 @@ export default function SelectMovieButton({ selectedMovie }: SelectMovieProps) {
         <SelectCreditCard
           selectedCard={selectedCard}
           setSelectedCard={setSelectedCard}
+          handleConfirmBooking={handleConfirmBooking}
         ></SelectCreditCard>
       )}
-      {step === 5 && (
+      {/* {step === 5 && (
         <Button
           onClick={handleConfirmBooking}
           className="mt-4 w-full"
@@ -143,8 +146,10 @@ export default function SelectMovieButton({ selectedMovie }: SelectMovieProps) {
         >
           Confirm Booking
         </Button>
-      )}
-      {step === 6 &&  (
+      )} */}
+
+
+      {step === 6 && (
         <ConfirmationPage
           movie={selectedMovie}
           discount={discount}
