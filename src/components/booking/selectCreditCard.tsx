@@ -9,18 +9,20 @@ import { CreditCardInterface } from "./creditcard";
 import { useEffect } from "react";
 import { Trash } from "lucide-react";
 
-const MAXNUMCARDS = 4; 
+const MAXNUMCARDS = 4;
 
 type SelectCreditCardProps = {
   selectedCard: string | null;
   setSelectedCard: (e: string | null) => void;
   disableButtons?: boolean;
+  handleConfirmBooking: () => Promise<void>;
 };
 
 export default function SelectCreditCard({
   selectedCard,
   setSelectedCard,
   disableButtons = false,
+  handleConfirmBooking,
 }: SelectCreditCardProps) {
   const [addCard, setAddCard] = useState(false);
   const [cards, setCards] = useState<CreditCardInterface[]>();
@@ -60,12 +62,12 @@ export default function SelectCreditCard({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({...card, delete: true}),
+        body: JSON.stringify({ ...card, delete: true }),
       });
       setRefresh(true);
     } catch (error) {
       console.log("error deleting card: " + error);
-    } 
+    }
   }
 
   return (
@@ -77,7 +79,7 @@ export default function SelectCreditCard({
           <div className="flex flex-col">
             {cards != null &&
               cards.map((card, index) => (
-                <div key={"div"+card.id} className="flex flex-row">
+                <div key={"div" + card.id} className="flex flex-row">
                   <button
                     key={card.id}
                     id={"" + card.id}
@@ -94,28 +96,42 @@ export default function SelectCreditCard({
                       }
                     />
                   </button>
-                  <button key={"deletebutton_"+card.id} type="button" onClick={() => handleDeleteCard(card)}>
+                  <button
+                    key={"deletebutton_" + card.id}
+                    type="button"
+                    onClick={() => handleDeleteCard(card)}
+                  >
                     <Trash size={30} color="red" />
                   </button>
                 </div>
               ))}
           </div>
         </CardContent>
-        <div className="flex flex-row gap-1">
-          <Button
-            onClick={onAddCard}
-            className=""
-            disabled={addCard || (cards != null && cards.length >= MAXNUMCARDS)}
-          >
-            Add Card
-          </Button>
-          {addCard && (
-            <Button onClick={handleCancel} className="">
-              Cancel
+        <div className="flex flex-row justify-between">
+          <div className="flex flex-row gap-1">
+            <Button
+              onClick={onAddCard}
+              className=""
+              disabled={
+                addCard || (cards != null && cards.length >= MAXNUMCARDS)
+              }
+            >
+              Add Card
             </Button>
-          )}
+            {addCard && (
+              <Button onClick={handleCancel} className="">
+                Cancel
+              </Button>
+            )}
+          </div>
+          <Button
+            onClick={handleConfirmBooking}
+            className=" "
+            disabled={selectedCard === null}
+          >
+            Confirm Booking
+          </Button>
         </div>
-
         {addCard && (
           <CreditCardForm refresh={refresh} setRefresh={setRefresh} />
         )}
