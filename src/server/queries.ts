@@ -8,7 +8,7 @@ export async function getMyMovies() {
     orderBy: (model) => desc(model.id),
   });
 
-  console.log(moviesList);
+  //console.log(moviesList);
 
   return moviesList;
 }

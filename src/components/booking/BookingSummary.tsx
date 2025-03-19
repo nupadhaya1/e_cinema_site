@@ -104,7 +104,7 @@ export default function BookingSummary({
   //TODO: check promotion code validity
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    console.log(values);
+    //console.log(values);
     try {
       let data = await fetch(
         "/api/moviebooking/promotion?promotion=" + values.promotionCode,
