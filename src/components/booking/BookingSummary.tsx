@@ -2,9 +2,9 @@
 
 import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import { Movie } from "./SelectMovieButton";
-import { Showtime } from "./SelectShowTimes";
-import { Seat } from "./SelectSeats";
+import { Movie } from "./selectMovieButton";
+import { Showtime } from "./selectShowTimes";
+import { Seat } from "./selectSeats";
 import {
   Form,
   FormControl,
@@ -17,8 +17,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Input } from "../ui/input";
-import { useState } from "react";
-
+import { useEffect, useState } from "react";
+import { set } from "date-fns";
 
 type BookingSummaryProps = {
   movie: Movie;
@@ -27,6 +27,10 @@ type BookingSummaryProps = {
   discount: Number;
   setDiscount: (e: Number) => void;
   onContinue: () => void;
+  setPrices: (p: Price) => void;
+  prices: Price | null | undefined;
+  // promotionCode: String;
+  // setPromotionCode: (e: String) => void;
 };
 
 export type Price = {
@@ -35,11 +39,9 @@ export type Price = {
   senior: number;
 };
 
-
-const formSchema = z
-  .object({
-   promotionCode: z.string().optional(),
-  })
+const formSchema = z.object({
+  promotionCode: z.string().optional(),
+});
 
 //TODO:
 export function getPrices(movie: Movie) {
@@ -53,16 +55,45 @@ export default function BookingSummary({
   discount,
   setDiscount,
   onContinue,
+  setPrices,
+  prices,
+  // promotionCode,
+  // setPromotionCode
 }: BookingSummaryProps) {
   const [isLoading, setIsLoading] = useState(false);
   let taxPercentage = 0.1;
-  let prices = getPrices(movie);
-  let subtotal = 0;
-  for (let i = 0; i < seats.length; i++) {
-    subtotal += prices[seats[i]!.ageCategory as keyof Price];
-  }
-  let total = subtotal * (1 + taxPercentage);
-  total = total - Number(discount);
+  useEffect(() => {
+    let fetchData = async () => {
+      let data = await fetch(
+        "/api/moviebooking/prices?movieId=" +
+          movie.id +
+          "&showtimeId=" +
+          showtime.id,
+      );
+      setPrices(await data.json());
+    };
+    fetchData();
+  }, []);
+
+  const [subtotal, setSubTotal] = useState(0.0);
+  const [total, setTotal] = useState(0.0);
+
+  //let prices = getPrices(movie);
+  // if(prices == null || prices == undefined) {
+  //   setPrices(getPrices(movie));
+  // }
+  useEffect(() => {
+    if (prices == null) {
+      return;
+    }
+    let _subtotal = 0;
+    for (let i = 0; i < seats.length; i++) {
+      _subtotal += prices![seats[i]!.ageCategory as keyof Price];
+    }
+    setSubTotal(_subtotal);
+    let total = subtotal * (1 + taxPercentage);
+    setTotal(total - Number(discount));
+  }, [prices]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -70,34 +101,33 @@ export default function BookingSummary({
       promotionCode: "",
     },
   });
-//TODO: check promotion code validity
+  //TODO: check promotion code validity
   async function onSubmit(values: z.infer<typeof formSchema>) {
-      setIsLoading(true);
-      console.log(values);
-      try {
-        if(values.promotionCode == "uga") {
-        setDiscount(10.00);
-
-        }
-        // await updateProfile(values);
-        // toast({
-        //   title: "Profile updated",
-        //   description: "Your profile has been successfully updated.",
-        // });
-        // form.reset();
-      } catch (error) {
-        // toast({
-        //   title: "Error",
-        //   description: "There was a problem updating your profile.",
-        //   variant: "destructive",
-        // });
-      } finally {
-        setIsLoading(false);
+    setIsLoading(true);
+    console.log(values);
+    try {
+      let data = await fetch(
+        "/api/moviebooking/promotion?promotion=" + values.promotionCode,
+      );
+      if (!data.ok) {
+        form.setError("promotionCode", {
+          message: "Invalid promotion code.",
+        });
+      } else {
+        setDiscount(Number(await data.json()));
       }
+    } catch (error) {
+      // toast({
+      //   title: "Error",
+      //   description: "There was a problem updating your profile.",
+      //   variant: "destructive",
+      // });
+    } finally {
+      setIsLoading(false);
     }
+  }
 
-
-  return (
+  return ( prices != null &&
     <Card>
       <CardHeader>
         <CardTitle>Booking Summary</CardTitle>
@@ -120,7 +150,7 @@ export default function BookingSummary({
                   {seat.row}
                   {seat.number} ({seat.ageCategory})
                 </div>
-                {"$" + prices[seat.ageCategory as keyof Price].toFixed(2)}
+                {"$" + prices![seat.ageCategory as keyof Price].toFixed(2)}
               </div>
             ))}
           </div>
@@ -155,7 +185,7 @@ export default function BookingSummary({
                 </FormItem>
               )}
             />
-            <Button type="submit" disabled={isLoading}>
+            <Button type="submit" disabled={isLoading || discount != 0}>
               {isLoading ? "Checking..." : "Apply Promotion Code"}
             </Button>
           </form>

@@ -20,13 +20,13 @@ export type Seat = {
 type SeatSelectionProps = {
   onConfirmSeats: (selectedSeats: Seat[]) => void;
   selected_seats: Seat[];
+  showTimeId: number;
 };
 
-//TODO: get seats from db
-const getSeats = (): Seat[] => {
+//intializes seats
+function getSeats() {
   const seats: Seat[] = [];
   const rows = ["A", "B", "C", "D", "E"];
-  let min = 1; let max = 50;
   rows.forEach((row, rowIndex) => {
     for (let i = 1; i <= 10; i++) {
       seats.push({
@@ -34,19 +34,22 @@ const getSeats = (): Seat[] => {
         row,
         number: i,
         selected: false,
-        taken: (rowIndex * 10 + i) % 3 == 0 ? true : false,
+        taken: false,
         ageCategory: "adult",
       });
     }
   });
   return seats;
-};
+}
 
 export function SeatSelection({
   onConfirmSeats,
   selected_seats,
+  showTimeId,
 }: SeatSelectionProps) {
   const [seats, setSeats] = useState<Seat[]>(getSeats());
+  const [refresh, setFresh] = useState(false);
+  const [takenSeats, setTakenSeats] = useState<String[] | null>(null);
 
   function toggleSeat(seatId: number) {
     setSeats(
@@ -69,12 +72,41 @@ export function SeatSelection({
     setSeats(
       seats.map((seat) => {
         let s = selected_seats.find((s) => s.id === seat.id);
-      return !seat.taken && s !== undefined ? {...s} : seat},
-      ),
+        return !seat.taken && s !== undefined ? { ...s } : seat;
+      }),
     );
   }, []);
 
-  const selectedSeats = seats.filter((seat) => seat.selected);
+  useEffect(() => { //gets db data
+    const fetchData = async () => {
+      let data = await fetch(
+        "/api/moviebooking/seats?showTimeId=" + showTimeId,
+      );
+      setTakenSeats(await data.json());
+    
+    };
+    fetchData();
+    setFresh(false);
+  }, [refresh]);
+
+  useEffect(() => { //sets seats taken based on db data
+    if(takenSeats == null) {
+      return;
+    }
+    setSeats(
+      seats.map((seat) => {
+        for(let i = 0; i < takenSeats.length; i++) {
+          if (takenSeats[i] == (seat.row + seat.number)) {
+            return {...seat, taken: true}
+          }
+        }
+        
+        return seat;
+      }),
+    );
+  }, [takenSeats]);
+
+  const selectedSeats = seats.filter((seat) => seat.selected); //counts how many seats selected
 
   return (
     <Card>
@@ -107,7 +139,12 @@ export function SeatSelection({
                 onValueChange={(value) => updateAgeCategory(seat.id, value)}
               >
                 <SelectTrigger className="w-32">
-                  <SelectValue placeholder={seat.ageCategory.charAt(0).toUpperCase() + seat.ageCategory.slice(1)} />
+                  <SelectValue
+                    placeholder={
+                      seat.ageCategory.charAt(0).toUpperCase() +
+                      seat.ageCategory.slice(1)
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="adult">Adult</SelectItem>

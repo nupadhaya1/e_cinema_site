@@ -23,41 +23,38 @@ import { Checkbox } from "./ui/checkbox";
 import { useToast } from "../hooks/use-toast";
 import { useEffect } from "react";
 import SelectCreditCard from "./booking/selectCreditCard";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { Card, CardContent } from "./ui/card";
 
-const formSchema = z
-  .object({
-    email: z.string(),
-    currentPassword: z.string(),
-    newPassword: z.string(), //.min(8, "Password must be at least 8 characters"),
-    confirmPassword: z.string(),
-    name: z.string(),
-    phoneNumber: z.string(),
-    address: z.string().min(1, "Address is required"),
-    promotions: z.boolean(),
-  })
-  .refine((data) => data.newPassword === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  });
+const formSchema = z.object({
+  phoneNumber: z.string(),
+  address: z.string().min(1, "Address is required"),
+  promotions: z.boolean(),
+});
 
 export default function EditProfileForm() {
-  let selectedCard = null;
   const [isLoading, setIsLoading] = useState(false);
-  const [user, setUser] = useState();
   const { toast } = useToast();
+  const [refresh, setRefresh] = useState(false);
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      phoneNumber: "",
+      address: "",
+      promotions: false,
+    },
+  });
 
   //TODO: get defualt values from db
   useEffect(() => {
     setIsLoading(true);
     const fetchData = async () => {
-      console.log("hellow");
       try {
         const response = await fetch("/api/profile");
         if (!response.ok) throw new Error("Network response was not ok");
 
         const result = await response.json();
-        setUser(result);
+        form.reset(result);
       } catch (error) {
         //setError(error.message);
       } finally {
@@ -66,34 +63,22 @@ export default function EditProfileForm() {
     };
 
     fetchData();
-  }, []); // Empty dependency array runs effect only once on mount
-
-  //TODO: get default values from db
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      email: "hairydawg@uga.edu",
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: "",
-      name: "Hairy Dawg",
-      phoneNumber: "123-123-1234",
-      address: "uga, athens, ga",
-      promotions: false,
-    },
-  });
-
-  //TODO: post to api or something
-  async function updateProfile(formData: any) {
-    const password = formData.get("password") as string;
-    const address = formData.get("address") as string;
-  }
+    setRefresh(false);
+  }, [refresh]); // Empty dependency array runs effect only once on mount
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    console.log(values);
+    //console.log(values);
     try {
-      await updateProfile(values);
+      const response = await fetch("/api/profile", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(values),
+      });
+      setRefresh(true);
+      form.reset(values);
       toast({
         title: "Profile updated",
         description: "Your profile has been successfully updated.",
@@ -174,7 +159,7 @@ export default function EditProfileForm() {
       </Card>
 
       <SelectCreditCard
-        selectedCard={selectedCard}
+        selectedCard={null}
         setSelectedCard={() => {}}
         disableButtons={true}
       ></SelectCreditCard>

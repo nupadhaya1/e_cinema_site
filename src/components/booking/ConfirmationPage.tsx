@@ -2,10 +2,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { useRouter } from "next/navigation";
-import { Movie } from "./SelectMovieButton";
-import { Showtime } from "./SelectShowTimes";
-import { Seat } from "./SelectSeats";
-import { getPrices, Price } from "./BookingSummary";
+import { Movie } from "./selectMovieButton";
+import { Showtime } from "./selectShowTimes";
+import { Seat } from "./selectSeats";
+import { Price } from "./BookingSummary";
 
 type ConfirmationProps = {
   movie: Movie;
@@ -13,15 +13,15 @@ type ConfirmationProps = {
   seats: Seat[];
   confirmationNumber: Number;
   discount: Number;
+  prices: Price;
 };
 
-export default function ConfirmationPage({movie, showtime, seats, confirmationNumber, discount}:ConfirmationProps) {
+export default function ConfirmationPage({movie, showtime, seats, confirmationNumber, discount, prices}:ConfirmationProps) {
     const router = useRouter();
     function onClick() {
       router.push("/");
     }
     let taxPercentage = 0.1;
-    let prices = getPrices(movie);
     let subtotal = 0;
     for (let i = 0; i < seats.length; i++) {
       subtotal += prices[seats[i]!.ageCategory as keyof Price];
@@ -36,7 +36,7 @@ export default function ConfirmationPage({movie, showtime, seats, confirmationNu
           <CardContent>
           <div className="space-y-2">
           <p className="text-lg text-center">
-            <strong>{confirmationNumber+""}</strong> 
+            <strong>{"Confirmation# "+ confirmationNumber}</strong> 
           </p>
           <p>
             <strong>Movie:</strong> {movie.title}
