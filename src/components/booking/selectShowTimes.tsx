@@ -1,6 +1,7 @@
+import { set } from "date-fns"
 import { Button } from "../ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
-import { Movie } from "./SelectMovieButton"
+import { Movie } from "./selectMovieButton"
 import { useEffect, useState } from "react"
 
 export type Showtime = {
@@ -14,19 +15,19 @@ type ShowtimeSelectionProps = {
   onSelectShowtime: (showtime: Showtime) => void
 }
 
-//TODO: Get showtimes from db
-function getShowTimes(movie: Movie) {
-    return [
-        { id: 1, time: "10:00 AM" },
-        { id: 2, time: "1:00 PM" },
-        { id: 3, time: "4:00 PM" },
-        { id: 4, time: "7:00 PM" },
-        { id: 5, time: "10:00 PM" },
-      ];
-}
 
 export function ShowtimeSelection({ movie, onSelectShowtime }: ShowtimeSelectionProps) {
-    const [showtimes, setShowtimes] = useState<Showtime[] >(getShowTimes(movie));
+    const [showtimes, setShowtimes] = useState<Showtime[] >([]);
+    useEffect(() => {
+      const fetchData = async () => {
+        const response = await fetch("/api/moviebooking/showtimes?movieId=" + movie.id);
+        const result = await response.json();
+        setShowtimes(result);
+      };
+  
+      fetchData();
+    }, []);
+
 
 
   return (

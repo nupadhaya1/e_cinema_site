@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { use, useState } from "react";
 import { ShowtimeSelection } from "./selectShowTimes";
 import { SeatSelection } from "./selectSeats";
-import BookingSummary from "./BookingSummary";
+import BookingSummary, { Price } from "./BookingSummary";
 import { Button } from "../ui/button";
 import { Showtime } from "./selectShowTimes";
 import { Seat } from "./selectSeats";
@@ -25,25 +25,36 @@ export default function SelectMovieButton({ selectedMovie }: SelectMovieProps) {
   const [step, setStep] = useState(2);
   const [selectedShowtime, setSelectedShowtime] = useState<Showtime | null>(
     null,
-  );
+  ); //{id:, time:}
   const [selectedSeats, setSelectedSeats] = useState<Seat[]>([]);
-  const [selectedCard, setSelectedCard] = useState<string | null>(null);
+  const [selectedCard, setSelectedCard] = useState<string | null>(null); //uuid
   const [discount, setDiscount] = useState<Number>(0.0);
+  // const [promotionCode, setPromotionCode] = useState<String>("");
   const [confirmationNumber, setConfirmationNumber] = useState<Number>(-1);
+  const [prices, setPrices] = useState<Price | null>();
 
   const router = useRouter();
 
-  //TODO:
-  function handleConfirmBooking() {
-    // Here you would typically send the booking data to your backend
-    console.log("Booking confirmed:", {
-      selectedMovie,
-      selectedShowtime,
-      selectedSeats,
-      selectedCard,
-    });
-    setConfirmationNumber(Math.floor(Math.random() * 100000000));
-    setStep(6);
+  async function handleConfirmBooking() {
+    try {
+      const response = await fetch("/api/moviebooking/confirmbooking", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          movie: selectedMovie,
+          showtime: selectedShowtime,
+          seats: selectedSeats,
+          card: selectedCard,
+        }),
+      });
+      let jason = await response.json();
+      setConfirmationNumber(jason[0].bookingId);
+      setStep(6);
+    } catch (e) {
+      console.log(e);
+    }
     //alert("Booking confirmed!");
   }
 
@@ -79,12 +90,6 @@ export default function SelectMovieButton({ selectedMovie }: SelectMovieProps) {
 
   return (
     <div className="container mx-auto p-4">
-      {/* {step === 1 && (
-        <Button onClick={() => setStep(2)} className="w-full">
-          Select Movie
-        </Button>
-      )} */}
-
       {step !== 1 && step !== 6 && (
         <div className="mb-2 flex flex-row gap-1">
           <Button onClick={handleBackButton} className="w-full">
@@ -104,10 +109,11 @@ export default function SelectMovieButton({ selectedMovie }: SelectMovieProps) {
           onSelectShowtime={handleSelectShowtime}
         />
       )}
-      {step === 3 && (
+      {step === 3 && selectedShowtime != null && (
         <SeatSelection
           onConfirmSeats={handleConfirmSeats}
           selected_seats={selectedSeats}
+          showTimeId={selectedShowtime.id}
         />
       )}
       {step === 4 && selectedMovie && selectedShowtime && (
@@ -118,6 +124,8 @@ export default function SelectMovieButton({ selectedMovie }: SelectMovieProps) {
           discount={discount}
           setDiscount={setDiscount}
           onContinue={() => setStep(5)}
+          setPrices={setPrices}
+          prices={prices}
         />
       )}
       {step === 5 && (
@@ -135,13 +143,14 @@ export default function SelectMovieButton({ selectedMovie }: SelectMovieProps) {
           Confirm Booking
         </Button>
       )}
-      {step === 6 && (
+      {step === 6 &&  (
         <ConfirmationPage
           movie={selectedMovie}
           discount={discount}
           seats={selectedSeats}
           showtime={selectedShowtime}
           confirmationNumber={confirmationNumber}
+          prices={prices!}
         ></ConfirmationPage>
       )}
     </div>
