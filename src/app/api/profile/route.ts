@@ -1,23 +1,56 @@
 import { NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
+import { db } from "~/server/db";
+import { users } from "~/server/db/schema";
+import { eq } from "drizzle-orm";
 
-// Mock user data (replace with DB)
-let user = {
-  name: "John Doe",
-  phone: "123-456-7890",
-  address: "123 Main St, City, Country",
-};
-
-// GET: Fetch profile data
-export async function GET() {
-  return NextResponse.json(user);
+export async function POST(request: Request) {
+  const user = await auth();
+  if (!user || !user.userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  try {
+    let userData = await request.json();
+    // await db.insert(users).values({
+    //   userID: user.userId,
+    //   isAdmin: false, // default role (adjust as needed)
+    // });
+    await db.update(users).set({
+       ...userData
+    }).where(eq(users.userID, user.userId));
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Error updataing profile:", error);
+    return NextResponse.json({ error: "Failed to update profile" }, { status: 500 });
+  }
 }
 
-// POST: Update profile data
-export async function POST(req: Request) {
-  const updatedUser = await req.json();
-  
-  // Simulate saving to a database
-  user = { ...user, ...updatedUser };
+export async function GET() {
+  const user = await auth();
+  if (!user || !user.userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
-  return NextResponse.json({ message: "Profile updated successfully!" });
+  try {
+    let userData = await db.query.users.findFirst({
+      where: (users, { eq }) => eq(users.userID, user.userId),
+    });
+
+    if (!userData) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+    //console.log(userData);
+    let data = {
+      phoneNumber: userData.phoneNumber,
+      address: userData.address,
+      promotions: userData.promotions
+    }
+    return NextResponse.json(data);
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch user" },
+      { status: 500 },
+    );
+  }
 }

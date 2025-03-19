@@ -77,7 +77,7 @@ export default function SelectCreditCard({
           <div className="flex flex-col">
             {cards != null &&
               cards.map((card, index) => (
-                <div className="flex flex-row">
+                <div key={"div"+card.id} className="flex flex-row">
                   <button
                     key={card.id}
                     id={"" + card.id}
@@ -94,7 +94,7 @@ export default function SelectCreditCard({
                       }
                     />
                   </button>
-                  <button key={"deletebutton"+card.id} type="button" onClick={() => handleDeleteCard(card)}>
+                  <button key={"deletebutton_"+card.id} type="button" onClick={() => handleDeleteCard(card)}>
                     <Trash size={30} color="red" />
                   </button>
                 </div>

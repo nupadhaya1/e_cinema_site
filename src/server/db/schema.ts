@@ -53,6 +53,9 @@ export const movies = createTable(
 export const users = createTable("users", {
  userID: varchar("userID", { length: 256 }).primaryKey(),
  isAdmin: boolean("isAdmin").default(false),
+ phoneNumber: text("phoneNumber"),
+ address: text("address"), 
+ promotions: boolean("promotions"),
 });
 
 

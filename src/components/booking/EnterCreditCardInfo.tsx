@@ -54,8 +54,8 @@ export default function CreditCardForm({refresh, setRefresh}: CreditCardFormProp
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    console.log(values);
-    console.log(JSON.stringify(values));
+    // console.log(values);
+    // console.log(JSON.stringify(values));
     try {
       const response = await fetch("/api/creditcard", {
         method: "POST",

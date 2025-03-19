@@ -51,7 +51,7 @@ export async function POST(request: Request) {
   if (card.delete != null && card.delete) {
     try {
       await db.delete(creditCards).where(eq(creditCards.id, card.id));
-      console.log("delete" + card.id);
+      //console.log("delete" + card.id);
       return NextResponse.json({ success: true });
     } catch (error) {
       console.error("Error inserting card:", error);
