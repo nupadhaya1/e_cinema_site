@@ -30,7 +30,7 @@ export async function GET(request: Request) {
     let prices = await db.query.prices.findFirst({
         where: (prices, {eq}) => eq(prices.id , Number(data[0]?.pricesId)),
     })
-    console.log(prices);
+    //console.log(prices);
     return NextResponse.json(
         {
             adult: prices?.adultPrice,

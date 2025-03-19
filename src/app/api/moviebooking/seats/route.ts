@@ -10,7 +10,7 @@ export async function GET(request: Request) {
   }
 
   const { searchParams } = new URL(request.url);
-  console.log(request.url);
+  //console.log(request.url);
   const showTimeId = searchParams.get("showTimeId");
 
   try {

@@ -72,7 +72,7 @@ function MoviesClient({ movies }: { movies: any[] }) {
                     <Link
                       href={{
                         pathname: "/movie_booking",
-                        query: { name: movie.name, url: movie.url },
+                        query: { name: movie.name, url: movie.url , id: movie.id},
                       }}
                     >
                       <Plus className="h-4" />

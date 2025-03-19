@@ -9,10 +9,11 @@ function MovieComponent() {
   const searchParams = useSearchParams();
   const name = searchParams.get("name");
   const url = searchParams.get("url");
+  const id =  searchParams.get("id");
 
   // Ensure the parameters exist before using them
   const m: Movie = {
-    id: 1,
+    id: id ? Number(id) : 0,
     title: name ? String(name) : "Default Title",
     image: url ? String(url) : "",
   };

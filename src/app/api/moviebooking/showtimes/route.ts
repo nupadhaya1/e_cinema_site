@@ -9,7 +9,7 @@ export async function GET(request: Request) {
   }
 
   const { searchParams } = new URL(request.url);
-  console.log(request.url);
+  //console.log(request.url);
   const movieId = searchParams.get("movieId");
 
   try {
@@ -21,7 +21,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    console.log(showtimes);
+    //console.log(showtimes);
     return NextResponse.json(
       showtimes.map((showtime) => {
         return { id: showtime.id, time: showtime.time };

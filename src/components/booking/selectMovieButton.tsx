@@ -36,6 +36,7 @@ export default function SelectMovieButton({ selectedMovie }: SelectMovieProps) {
   const router = useRouter();
 
   async function handleConfirmBooking() {
+    console.log(selectedMovie);
     try {
       const response = await fetch("/api/moviebooking/confirmbooking", {
         method: "POST",

@@ -28,7 +28,7 @@ export async function POST(request: Request) {
       userId: String(user.userId),
       cardId: String(card),
     }).returning({bookingId: confirmed_bookings.id}).execute();
-    console.log(bookingId);
+    //console.log(bookingId);
     return NextResponse.json(bookingId);
   } catch (error) {
     console.error("Error inserting card:", error);
