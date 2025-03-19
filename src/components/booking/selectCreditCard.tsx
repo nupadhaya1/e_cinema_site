@@ -124,13 +124,13 @@ export default function SelectCreditCard({
               </Button>
             )}
           </div>
-          <Button
+          {!disableButtons&&<Button
             onClick={handleConfirmBooking}
             className=" "
             disabled={selectedCard === null}
           >
             Confirm Booking
-          </Button>
+          </Button>}
         </div>
         {addCard && (
           <CreditCardForm refresh={refresh} setRefresh={setRefresh} />
