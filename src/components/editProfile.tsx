@@ -24,7 +24,6 @@ import { useToast } from "../hooks/use-toast";
 import { useEffect } from "react";
 import SelectCreditCard from "./booking/selectCreditCard";
 import { Card, CardContent } from "./ui/card";
-// asdf bug stuff
 import isMobilePhone from "validator/lib/isMobilephone";
 
 const formSchema = z.object({
