@@ -50,6 +50,8 @@ export const users = createTable("users", {
   phoneNumber: text("phoneNumber"),
   address: text("address"),
   promotions: boolean("promotions"),
+  firstName: text("firstName").notNull(),
+  lastName: text("lastName").notNull(),
 });
 
 export const creditCards = createTable("credit_cards", {
@@ -63,7 +65,6 @@ export const creditCards = createTable("credit_cards", {
   exp: text("exp").notNull(),
   address: text("address").notNull(),
 });
-
 
 export const showtimes = createTable("showtimes", {
   id: serial("id").unique().primaryKey(),
@@ -102,8 +103,7 @@ export const promotions = createTable("promotions", {
   discount: doublePrecision("discount").notNull(),
 });
 
-
-export const confirmed_bookings = createTable("confirmed_bookings",{
+export const confirmed_bookings = createTable("confirmed_bookings", {
   id: uuid("id").defaultRandom().unique().primaryKey(),
   movieId: serial("movieId").references(() => movies.id, {
     onDelete: "cascade",
@@ -114,7 +114,7 @@ export const confirmed_bookings = createTable("confirmed_bookings",{
   userId: varchar("userId", { length: 256 }).references(() => users.userID, {
     onDelete: "cascade",
   }),
-  cardId: uuid("cardId").references(()=> creditCards.id,{
+  cardId: uuid("cardId").references(() => creditCards.id, {
     onDelete: "cascade",
-  })
+  }),
 });

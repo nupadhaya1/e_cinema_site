@@ -23,13 +23,9 @@ function AdminStatus() {
     async function fetchAdminStatus() {
       try {
         const res = await fetch("/api/users"); // adjust path if needed
-        if (!res.ok) {
-          throw new Error("Failed to fetch admin status");
-        }
         const data = await res.json();
         setIsAdmin(data.isAdmin);
       } catch (error) {
-        console.error("Error fetching admin status:", error);
       } finally {
         setLoading(false);
       }

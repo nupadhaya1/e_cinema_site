@@ -3,8 +3,8 @@
 import type React from "react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { CreditCard, Phone } from "lucide-react";
-
+import { CreditCard, Phone, MapPin } from "lucide-react";
+import { useUser } from "@clerk/nextjs";
 import { Button } from "~/components/ui/button";
 import {
   Card,
@@ -22,35 +22,76 @@ import { Separator } from "~/components/ui/separator";
 export default function SignUpForm() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const { user } = useUser();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
 
     const formData = new FormData(e.currentTarget);
-    // const phone = formData.get("phone") as string;
+    const phone = formData.get("phone") as string;
+    const cardName = formData.get("cardName") as string;
+    const cardNumber = formData.get("cardNumber") as string;
+    const expiry = formData.get("expiry") as string;
+    const cvc = formData.get("cvc") as string;
+    const address = formData.get("address") as string;
+    const cardType = formData.get("cardType") as string; // Added Card Type
 
-    // if (!phone) {
-    //   setIsLoading(false);
-    //   return;
-    // }
-
-    // Simulate any client-side work, e.g., phone validation or additional logic
-    // await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    // Call the API route to add the user to the database
-    const res = await fetch("/api/users", { method: "POST" });
-    if (!res.ok) {
-      // Optionally, handle errors here
-      console.error("Failed to add user:", await res.json());
+    if (!user) {
+      toast.error("Please sign in to create an account.");
       setIsLoading(false);
       return;
     }
 
-    toast.success("Account created successfully!");
+    const firstName = user.firstName;
+    const lastName = user.lastName;
 
-    // Redirect to home page after successful account creation
-    router.push("/");
+    // Ensure either all card fields (including address and card type) are filled or none
+    const cardDetails = [cardName, cardNumber, expiry, cvc, address, cardType];
+    const hasSomeCardInfo = cardDetails.some((field) => field.trim() !== "");
+    const hasAllCardInfo = cardDetails.every((field) => field.trim() !== "");
+
+    if (hasSomeCardInfo && !hasAllCardInfo) {
+      toast.error(
+        "Please fill out all card details (including address and card type) or leave them all empty.",
+      );
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      // First, create the user
+      const userRes = await fetch("/api/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName,
+          lastName,
+          phone,
+          cardName,
+          cardNumber,
+          expiry,
+          address,
+          cardType,
+          hasAllCardInfo,
+        }),
+      });
+
+      if (!userRes.ok) {
+        const errorData = await userRes.json();
+        toast.error(errorData.error || "Failed to create user account.");
+        setIsLoading(false);
+        return;
+      }
+
+      toast.success("Account created successfully!");
+      router.push("/");
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      toast.error("An error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -79,6 +120,7 @@ export default function SignUpForm() {
                 <Phone className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
                 <Input
                   id="phone"
+                  name="phone"
                   type="tel"
                   placeholder="(555) 555-5555"
                   className="pl-10"
@@ -106,13 +148,14 @@ export default function SignUpForm() {
 
               <div className="space-y-2">
                 <Label htmlFor="cardName">Name on Card</Label>
-                <Input id="cardName" placeholder="John Doe" />
+                <Input id="cardName" name="cardName" placeholder="John Doe" />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="cardNumber">Card Number</Label>
                 <Input
                   id="cardNumber"
+                  name="cardNumber"
                   placeholder="1234 5678 9012 3456"
                   maxLength={19}
                 />
@@ -121,15 +164,51 @@ export default function SignUpForm() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="expiry">Expiry Date</Label>
-                  <Input id="expiry" placeholder="MM/YY" maxLength={5} />
+                  <Input
+                    id="expiry"
+                    name="expiry"
+                    placeholder="MM/YY"
+                    maxLength={5}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="cvc">CVC</Label>
                   <Input
                     id="cvc"
+                    name="cvc"
                     placeholder="123"
                     maxLength={3}
                     type="password"
+                  />
+                </div>
+              </div>
+
+              {/* Card Type Dropdown */}
+              <div className="space-y-2">
+                <Label htmlFor="cardType">Card Type</Label>
+                <select
+                  id="cardType"
+                  name="cardType"
+                  className="w-full rounded border p-2"
+                >
+                  <option value="">Select Card Type</option>
+                  <option value="visa">VISA</option>
+                  <option value="mastercard">MASTERCARD</option>
+                  <option value="discover">DISCOVER</option>
+                  <option value="amex">AMEX</option>
+                </select>
+              </div>
+
+              {/* Address Field */}
+              <div className="space-y-2">
+                <Label htmlFor="address">Billing Address</Label>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    id="address"
+                    name="address"
+                    placeholder="123 Main St, City, Country"
+                    className="pl-10"
                   />
                 </div>
               </div>
