@@ -11,6 +11,8 @@ import {
   text,
   uuid,
   doublePrecision,
+  integer,
+  jsonb,
 } from "drizzle-orm/pg-core";
 
 /**
@@ -21,28 +23,27 @@ import {
  */
 export const createTable = pgTableCreator((name) => `e_cinema_site_${name}`);
 
-export const movies = createTable(
-  "movies",
-  {
-    id: serial("id").primaryKey(),
-    name: varchar("name", { length: 256 }).notNull(),
-    url: varchar("url", { length: 1024 }).notNull(),
-    category: varchar("category", { length: 256 }).notNull(),
-    cast: varchar("cast", { length: 1024 }).notNull(),
-    director: varchar("director", { length: 256 }).notNull(),
-    producer: varchar("producer", { length: 256 }).notNull(),
-    synopsis: varchar("synopsis", { length: 4096 }).notNull(),
-    trailerpicture: varchar("trailerpicture", { length: 2048 }).notNull(),
-    trailervideo: varchar("trailervideo", { length: 2048 }).notNull(),
-    rating: varchar("rating", { length: 256 }).notNull(),
-    showdate: varchar("showdate", { length: 256 }).notNull(),
-    showtime: varchar("showtime", { length: 256 }).notNull(),
-    reviews: varchar("reviews", { length: 4096 }),
-  },
-  (example) => ({
-    nameIndex: index("name_idx").on(example.name),
-  }),
-);
+export const movies = createTable("movies", {
+  id: serial("id").primaryKey(), // Auto-incrementing integer ID
+  name: text("name").notNull(), // Movie title
+  url: text("url").notNull(), // Poster URL
+  category: text("category").notNull(), // e.g., "currently_running", "coming_soon"
+  genre: text("genre").notNull(), // e.g., "action", "comedy"
+  cast: jsonb("cast").notNull().default("[]"), // Array of cast members as JSON
+  director: text("director").notNull(), // Director name
+  producer: text("producer").notNull(), // Producer name
+  synopsis: text("synopsis").notNull(), // Movie synopsis
+  trailerUrl: text("trailer_url").notNull(), // Trailer URL (matches API field)
+  imdb: integer("imdb").notNull(), // IMDb rating (0-10)
+  mpaa: text("mpaa").notNull(), // MPAA rating (e.g., "PG-13")
+  showdate: jsonb("showdate").notNull(), // Array of { date: string, times: string[] }
+  showtime: jsonb("showtime").notNull(), // Array of string[] (times per date)
+  reviews: jsonb("reviews").default(null), // Optional array of reviews as JSON
+});
+
+// Type inference for TypeScript
+export type Movie = typeof movies.$inferSelect; // For selecting movies
+export type NewMovie = typeof movies.$inferInsert; // For inserting movies
 
 export const users = createTable("users", {
   userID: varchar("userID", { length: 256 }).primaryKey(),
