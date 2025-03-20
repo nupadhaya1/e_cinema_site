@@ -33,11 +33,15 @@ const formSchema = z.object({
       /^(0[1-9]|1[0-2])\/(\d{2})$/,
       "Invalid expiration date. Format as MM/YY",
     ),
+  cvv: z.string().regex(/^\d{3,4}$/, "CVV must be 3-4 digits"),
   address: z.string().min(1, "Address is required"),
   cardType: z.enum(["visa", "mastercard", "discover", "amex"]),
 });
 
-export default function CreditCardForm({refresh, setRefresh}: CreditCardFormProps) {
+export default function CreditCardForm({
+  refresh,
+  setRefresh,
+}: CreditCardFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
@@ -50,7 +54,6 @@ export default function CreditCardForm({refresh, setRefresh}: CreditCardFormProp
       address: "",
     },
   });
-
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
@@ -110,6 +113,20 @@ export default function CreditCardForm({refresh, setRefresh}: CreditCardFormProp
 
           <FormField
             control={form.control}
+            name="cvv"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>CVV</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
             name="cardType"
             render={({ field }) => (
               <FormItem>
@@ -147,7 +164,7 @@ export default function CreditCardForm({refresh, setRefresh}: CreditCardFormProp
             name="address"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Address</FormLabel>
+                <FormLabel>Billing Address</FormLabel>
                 <FormControl>
                   <Input {...field} />
                 </FormControl>

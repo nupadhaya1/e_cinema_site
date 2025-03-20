@@ -65,6 +65,7 @@ export const creditCards = createTable("credit_cards", {
   cardName: text("cardName").notNull(),
   cardType: text("cardType").notNull(),
   exp: text("exp").notNull(),
+  cvv: text("cvv").notNull(),
   address: text("address").notNull(),
 });
 
