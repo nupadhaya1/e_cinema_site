@@ -3,6 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { db } from "~/server/db";
 import { users, creditCards } from "~/server/db/schema";
 import { useUser } from "@clerk/nextjs";
+import { eq } from "drizzle-orm";
 
 import { scrypt, randomFill, createCipheriv } from "node:crypto";
 const algorithm = "aes-192-cbc";
@@ -109,25 +110,70 @@ export async function POST(request: Request) {
 }
 
 export async function GET() {
-  const user = await auth();
-  if (!user || !user.userId) {
+  const userAuth = await auth();
+  if (!userAuth || !userAuth.userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    const userData = await db.query.users.findFirst({
-      where: (users, { eq }) => eq(users.userID, user.userId),
-    });
+    // Fetch all users instead of just the requesting user
+    const allUsers = await db.query.users.findMany();
 
-    if (!userData) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    if (!allUsers || allUsers.length === 0) {
+      return NextResponse.json({ users: [] });
     }
 
-    return NextResponse.json({ isAdmin: userData.isAdmin });
+    // Format users to match the required structure
+    const formattedUsers = allUsers.map((user) => ({
+      id: user.userID,
+      name: `${user.firstName} ${user.lastName}`,
+      phone: user.phoneNumber || "N/A",
+      email: "example@example.com", // No email field in schema, so placeholder
+      status: "active", // No status field in schema, assume "active"
+      admin: user.isAdmin ? "true" : "false",
+    }));
+
+    return NextResponse.json({ users: formattedUsers });
   } catch (error) {
-    console.error("Error fetching user role:", error);
+    console.error("Error fetching users:", error);
     return NextResponse.json(
-      { error: "Failed to fetch user role" },
+      { error: "Failed to fetch users" },
+      { status: 500 },
+    );
+  }
+}
+
+export async function PUT(request: Request) {
+  const userAuth = await auth();
+  if (!userAuth || !userAuth.userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    const body = await request.json();
+    const { id, isAdmin, status } = body;
+
+    if (!id) {
+      return NextResponse.json(
+        { error: "User ID is required" },
+        { status: 400 },
+      );
+    }
+
+    // Update the correct user in the database
+    await db
+      .update(users)
+      .set({
+        isAdmin: isAdmin === "true", // Ensure boolean conversion
+        status: status, // Store status
+      })
+      .where(eq(users.userID, id)); // Use `id` from request body instead of `userAuth.userId`
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Error updating user:", error);
+    return NextResponse.json(
+      { error: "Failed to update user" },
       { status: 500 },
     );
   }

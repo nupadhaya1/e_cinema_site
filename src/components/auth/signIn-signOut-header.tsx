@@ -22,10 +22,11 @@ function AdminStatus() {
   useEffect(() => {
     async function fetchAdminStatus() {
       try {
-        const res = await fetch("/api/users"); // adjust path if needed
+        const res = await fetch("/api/isadmin/"); // adjust path if needed
         const data = await res.json();
         setIsAdmin(data.isAdmin);
       } catch (error) {
+        console.error("Failed to fetch admin status:", error);
       } finally {
         setLoading(false);
       }

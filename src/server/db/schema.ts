@@ -52,6 +52,7 @@ export const users = createTable("users", {
   promotions: boolean("promotions"),
   firstName: text("firstName").notNull(),
   lastName: text("lastName").notNull(),
+  status: text("status"),
 });
 
 export const creditCards = createTable("credit_cards", {
