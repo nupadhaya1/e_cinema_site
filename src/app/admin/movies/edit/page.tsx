@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -75,8 +75,12 @@ const formSchema = z.object({
 
 export default function EditMoviePage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const movieId = searchParams.get("id");
+  const [movieId, setMovieId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    setMovieId(searchParams.get("id"));
+  }, []);
 
   const [cast, setCast] = useState<string[]>([]);
   const [castInput, setCastInput] = useState("");
