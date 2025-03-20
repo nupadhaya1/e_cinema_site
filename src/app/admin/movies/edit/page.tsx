@@ -1,7 +1,8 @@
 "use client";
 
 import type React from "react";
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -72,7 +73,15 @@ const formSchema = z.object({
   mpaa: z.string().min(1, "MPAA rating is required"),
 });
 
-export default function AddMovieForm() {
+export default function EditMoviePage() {
+  const router = useRouter();
+  const [movieId, setMovieId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    setMovieId(searchParams.get("id"));
+  }, []);
+
   const [cast, setCast] = useState<string[]>([]);
   const [castInput, setCastInput] = useState("");
   const [showDates, setShowDates] = useState<{ date: Date; times: string[] }[]>(
@@ -97,7 +106,78 @@ export default function AddMovieForm() {
     },
   });
 
+  useEffect(() => {
+    if (!movieId) {
+      console.error("No movie ID provided in query");
+      alert("No movie ID provided");
+      router.push("/admin/movies");
+      return;
+    }
+
+    async function fetchMovie() {
+      try {
+        console.log("Fetching movie with ID:", movieId);
+        const response = await fetch(`/api/movies?id=${movieId}`);
+        console.log("Response status:", response.status);
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error(
+            "Fetch failed with status:",
+            response.status,
+            "Error:",
+            errorText,
+          );
+          throw new Error(`Failed to fetch movie: ${errorText}`);
+        }
+        const movie = await response.json();
+        console.log("Fetched movie data:", movie);
+
+        form.reset({
+          name: movie.name,
+          url: movie.url,
+          category: movie.category,
+          genre: movie.genre || "",
+          director: movie.director,
+          producer: movie.producer,
+          synopsis: movie.synopsis,
+          trailerUrl: movie.trailerUrl,
+          imdb: movie.imdb,
+          mpaa: movie.mpaa,
+        });
+
+        let castArray: string[];
+        try {
+          castArray = JSON.parse(movie.cast);
+        } catch {
+          castArray = movie.cast.split(", ").filter(Boolean);
+        }
+        setCast(castArray);
+
+        const parsedShowdate = JSON.parse(movie.showdate) as {
+          date: string;
+          times: string[];
+        }[];
+        const parsedShowtime = JSON.parse(movie.showtime) as string[][];
+        const showDatesData = parsedShowdate.map((entry, index) => ({
+          date: new Date(entry.date),
+          times: parsedShowtime[index] || entry.times,
+        }));
+        setShowDates(showDatesData);
+      } catch (error) {
+        console.error("Error fetching movie:", error);
+        alert("Failed to load movie data");
+        router.push("/admin/movies");
+      }
+    }
+    fetchMovie();
+  }, [movieId, form, router]);
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!movieId) {
+      alert("No movie ID provided");
+      return;
+    }
+
     if (cast.length === 0) {
       alert("Please add at least one cast member.");
       return;
@@ -108,15 +188,16 @@ export default function AddMovieForm() {
     }
 
     const movieData = {
+      id: parseInt(movieId),
       name: values.name,
       url: values.url,
       category: values.category,
       genre: values.genre,
-      cast: cast, // Array of strings
+      cast: cast,
       director: values.director,
       producer: values.producer,
       synopsis: values.synopsis,
-      trailerUrl: values.trailerUrl, // Matches backend and schema
+      trailerUrl: values.trailerUrl,
       imdb: values.imdb,
       mpaa: values.mpaa,
       showdate: showDates.map((show) => ({
@@ -124,39 +205,27 @@ export default function AddMovieForm() {
         times: show.times,
       })),
       showtime: showDates.map((show) => show.times),
-      reviews: [], // Optional field
+      reviews: [],
     };
-
-    console.log("Submitting movie data:", JSON.stringify(movieData, null, 2));
 
     try {
       const response = await fetch("/api/movies", {
-        method: "POST",
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(movieData),
       });
 
-      const responseBody = await response.json();
-      console.log(
-        "Server response:",
-        response.status,
-        JSON.stringify(responseBody, null, 2),
-      );
-
       if (!response.ok) {
-        throw new Error(responseBody.error || "Unknown error");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to update movie");
       }
 
-      alert("Movie added successfully!");
-      form.reset();
-      setCast([]);
-      setShowDates([]);
-      setSelectedDate(undefined);
-      setTimeInput("");
+      alert("Movie updated successfully!");
+      router.push("/admin/movies");
     } catch (error) {
-      console.error("Error submitting movie:", error);
+      console.error("Error updating movie:", error);
       alert(
-        `Failed to add movie: ${error instanceof Error ? error.message : "Unknown error"}`,
+        `Failed to update movie: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
     }
   }
@@ -226,13 +295,11 @@ export default function AddMovieForm() {
                 </BreadcrumbItem>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
-                  <BreadcrumbLink href="/admin/movies/add">
-                    Movies
-                  </BreadcrumbLink>
+                  <BreadcrumbLink href="/admin/movies">Movies</BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
-                  <BreadcrumbPage>Add Movie</BreadcrumbPage>
+                  <BreadcrumbPage>Edit Movie</BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
@@ -240,8 +307,8 @@ export default function AddMovieForm() {
         </header>
         <Card className="rounded-none border-none">
           <CardHeader>
-            <CardTitle className="text-2xl">Add New Movie</CardTitle>
-            <CardDescription>Enter details for a new movie.</CardDescription>
+            <CardTitle className="text-2xl">Edit Movie</CardTitle>
+            <CardDescription>Update details for this movie.</CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -605,7 +672,7 @@ export default function AddMovieForm() {
                 <Separator />
 
                 <Button type="submit" className="w-full">
-                  Add Movie
+                  Save Changes
                 </Button>
               </form>
             </Form>
