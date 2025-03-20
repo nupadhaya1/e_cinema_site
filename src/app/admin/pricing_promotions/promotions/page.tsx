@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { CalendarIcon, Pencil, Trash2 } from "lucide-react";
 import { format } from "date-fns";
+import { useEffect } from "react";
 
 import { Button } from "~/components/ui/button";
 import {
@@ -70,16 +71,16 @@ import { cn } from "~/lib/utils";
 const promotionSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(3, { message: "Name must be at least 3 characters" }),
-  description: z
-    .string()
-    .min(10, { message: "Description must be at least 10 characters" }),
-  discountType: z.enum(["percentage", "fixed", "bogo"]),
+  // description: z
+  //   .string()
+  //   .min(10, { message: "Description must be at least 10 characters" }),
+  // discountType: z.enum(["percentage", "fixed", "bogo"]),
   discountValue: z.coerce
     .number()
     .min(0, { message: "Discount value must be positive" }),
-  startDate: z.date(),
-  endDate: z.date(),
-  isActive: z.boolean().default(true),
+  // startDate: z.date(),
+  // endDate: z.date(),
+  // isActive: z.boolean().default(true),
 });
 
 type Promotion = z.infer<typeof promotionSchema>;
@@ -87,26 +88,26 @@ type Promotion = z.infer<typeof promotionSchema>;
 export default function PromotionsManager() {
   // Sample initial promotions
   const [promotions, setPromotions] = useState<Promotion[]>([
-    {
-      id: "1",
-      name: "Summer Sale",
-      description: "20% off all summer items",
-      discountType: "percentage",
-      discountValue: 20,
-      startDate: new Date(2025, 5, 1),
-      endDate: new Date(2025, 7, 31),
-      isActive: true,
-    },
-    {
-      id: "2",
-      name: "Welcome Discount",
-      description: "Get $10 off your first purchase",
-      discountType: "fixed",
-      discountValue: 10,
-      startDate: new Date(2025, 0, 1),
-      endDate: new Date(2025, 11, 31),
-      isActive: true,
-    },
+    // {
+    //   id: "1",
+    //   name: "Summer Sale",
+    //   // description: "20% off all summer items",
+    //   // discountType: "percentage",
+    //   discountValue: 20,
+    //   // startDate: new Date(2025, 5, 1),
+    //   // endDate: new Date(2025, 7, 31),
+    //   // isActive: true,
+    // },
+    // {
+    //   id: "2",
+    //   name: "Welcome Discount",
+    //   // description: "Get $10 off your first purchase",
+    //   // discountType: "fixed",
+    //   discountValue: 10,
+    //   // startDate: new Date(2025, 0, 1),
+    //   // endDate: new Date(2025, 11, 31),
+    //   // isActive: true,
+    // },
   ]);
 
   const [editingPromotion, setEditingPromotion] = useState<Promotion | null>(
@@ -119,17 +120,47 @@ export default function PromotionsManager() {
     resolver: zodResolver(promotionSchema),
     defaultValues: {
       name: "",
-      description: "",
-      discountType: "percentage",
+      // description: "",
+      // discountType: "fixed",
       discountValue: 0,
-      startDate: new Date(),
-      endDate: new Date(new Date().setMonth(new Date().getMonth() + 1)),
-      isActive: true,
+      // startDate: new Date(),
+      // endDate: new Date(new Date().setMonth(new Date().getMonth() + 1)),
+      // isActive: true,
     },
   });
 
+useEffect(() => {
+    //setIsLoading(true);
+    const fetchData = async () => {
+      try {
+        const response = await fetch("/api/managepromotions");
+        if (!response.ok) throw new Error("Network response was not ok");
+
+        const result = await response.json();
+        setPromotions( result.map((promo:any, index: any) => {
+          return {
+        name: promo.code,
+        id: index,
+            discountValue: promo.discount
+          };
+
+        }));
+       
+      } catch (error) {
+        //setError(error.message);
+      } finally {
+        //setIsLoading(false);
+      }
+    };
+
+    fetchData();
+    //setRefresh(false);
+  }, []); // Empty dependency array runs effect only once on mount
+
+
   // Handle form submission
   const onSubmit = (data: Promotion) => {
+    console.log(data);
     if (editingPromotion) {
       // Update existing promotion
       setPromotions(
@@ -143,33 +174,62 @@ export default function PromotionsManager() {
       // Add new promotion
       setPromotions([...promotions, { ...data, id: Date.now().toString() }]);
     }
-
+    try {
+      async function d() {
+        await fetch("/api/managepromotions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ code: data.name, discount:data.discountValue }),
+      });}
+      d();
+      
+      //setRefresh(true);
+    } catch (error) {
+      console.log("error deleting promotion: " + error);
+    }
     resetForm();
     setIsDialogOpen(false);
   };
 
   // Edit promotion
-  const handleEdit = (promotion: Promotion) => {
+  const handleEdit =  async (promotion: Promotion) => {
     setEditingPromotion(promotion);
     form.reset(promotion);
+
+    
     setIsDialogOpen(true);
   };
 
   // Delete promotion
-  const handleDelete = (id: string) => {
-    setPromotions(promotions.filter((p) => p.id !== id));
+  const handleDelete = async (name: string) => {
+    try {
+      setPromotions(promotions.filter((p) => p.name !== name));
+      //console.log("click");
+      const response = await fetch("/api/managepromotions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ code: name, delete: true }),
+      });
+      //setRefresh(true);
+    } catch (error) {
+      console.log("error deleting promotion: " + error);
+    }
   };
 
   // Reset form
   const resetForm = () => {
     form.reset({
       name: "",
-      description: "",
-      discountType: "percentage",
+      // description: "",
+      // discountType: "percentage",
       discountValue: 0,
-      startDate: new Date(),
-      endDate: new Date(new Date().setMonth(new Date().getMonth() + 1)),
-      isActive: true,
+      // startDate: new Date(),
+      // endDate: new Date(new Date().setMonth(new Date().getMonth() + 1)),
+      // isActive: true,
     });
     setEditingPromotion(null);
   };
@@ -219,11 +279,11 @@ export default function PromotionsManager() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Name</TableHead>
-                    <TableHead>Type</TableHead>
+                    {/* <TableHead>Type</TableHead> */}
                     <TableHead>Value</TableHead>
-                    <TableHead>Start Date</TableHead>
+                    {/* <TableHead>Start Date</TableHead>
                     <TableHead>End Date</TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead>Status</TableHead> */}
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -240,29 +300,29 @@ export default function PromotionsManager() {
                         <TableCell className="font-medium">
                           {promotion.name}
                         </TableCell>
-                        <TableCell className="capitalize">
+                        {/* <TableCell className="capitalize">
                           {promotion.discountType}
-                        </TableCell>
+                        </TableCell> */}
                         <TableCell>
-                          {promotion.discountType === "percentage"
+                          {/* {promotion.discountType === "percentage"
                             ? `${promotion.discountValue}%`
                             : promotion.discountType === "fixed"
                               ? `$${promotion.discountValue}`
-                              : "Buy One Get One"}
+                              : "Buy One Get One"} */}{"$"+promotion.discountValue}
                         </TableCell>
-                        <TableCell>
+                        {/* <TableCell>
                           {format(promotion.startDate, "MMM d, yyyy")}
                         </TableCell>
                         <TableCell>
                           {format(promotion.endDate, "MMM d, yyyy")}
-                        </TableCell>
-                        <TableCell>
+                        </TableCell> */}
+                        {/* <TableCell>
                           <span
                             className={`rounded-full px-2 py-1 text-xs ${promotion.isActive ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}`}
                           >
                             {promotion.isActive ? "Active" : "Inactive"}
                           </span>
-                        </TableCell>
+                        </TableCell> */}
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
                             <Button
@@ -275,7 +335,7 @@ export default function PromotionsManager() {
                             <Button
                               variant="outline"
                               size="icon"
-                              onClick={() => handleDelete(promotion.id!)}
+                              onClick={() => handleDelete(promotion.name!)}
                               className="text-destructive hover:bg-destructive/10"
                             >
                               <Trash2 className="h-4 w-4" />
@@ -323,7 +383,7 @@ export default function PromotionsManager() {
                       )}
                     />
 
-                    <FormField
+                    {/* <FormField
                       control={form.control}
                       name="isActive"
                       render={({ field }) => (
@@ -348,10 +408,10 @@ export default function PromotionsManager() {
                           <FormMessage />
                         </FormItem>
                       )}
-                    />
+                    /> */}
                   </div>
 
-                  <FormField
+                  {/* <FormField
                     control={form.control}
                     name="description"
                     render={({ field }) => (
@@ -367,10 +427,10 @@ export default function PromotionsManager() {
                         <FormMessage />
                       </FormItem>
                     )}
-                  />
+                  /> */}
 
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                    <FormField
+                    {/* <FormField
                       control={form.control}
                       name="discountType"
                       render={({ field }) => (
@@ -400,7 +460,7 @@ export default function PromotionsManager() {
                           <FormMessage />
                         </FormItem>
                       )}
-                    />
+                    /> */}
 
                     <FormField
                       control={form.control}
@@ -412,20 +472,21 @@ export default function PromotionsManager() {
                             <Input
                               type="number"
                               placeholder={
-                                form.watch("discountType") === "percentage"
-                                  ? "20"
-                                  : "10"
+                                // form.watch("discountType") === "percentage"
+                                //   ? "20"
+                                //   : "10"
+                                ""
                               }
                               {...field}
-                              disabled={form.watch("discountType") === "bogo"}
+                              // disabled={form.watch("discountType") === "bogo"}
                             />
                           </FormControl>
                           <FormDescription>
-                            {form.watch("discountType") === "percentage"
+                            {/* {form.watch("discountType") === "percentage"
                               ? "Enter percentage value"
                               : form.watch("discountType") === "fixed"
                                 ? "Enter dollar amount"
-                                : "No value needed for BOGO"}
+                                : "No value needed for BOGO"} */}
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -433,7 +494,7 @@ export default function PromotionsManager() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  {/* <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <FormField
                       control={form.control}
                       name="startDate"
@@ -517,9 +578,9 @@ export default function PromotionsManager() {
                         </FormItem>
                       )}
                     />
-                  </div>
+                  </div> */}
 
-                  <DialogFooter>
+                  {/* <DialogFooter> */}
                     <Button
                       type="button"
                       variant="outline"
@@ -527,12 +588,12 @@ export default function PromotionsManager() {
                     >
                       Cancel
                     </Button>
-                    <Button type="submit">
+                    <Button type="submit" onClick={()=> console.log("click")}>
                       {editingPromotion
                         ? "Update Promotion"
                         : "Create Promotion"}
                     </Button>
-                  </DialogFooter>
+                  {/* </DialogFooter> */}
                 </form>
               </Form>
             </DialogContent>
