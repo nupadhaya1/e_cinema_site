@@ -24,6 +24,7 @@ import { useToast } from "../hooks/use-toast";
 import { useEffect } from "react";
 import SelectCreditCard from "./booking/selectCreditCard";
 import { Card, CardContent } from "./ui/card";
+// asdf bug stuff
 import isMobilePhone from "validator/lib/isMobilephone";
 
 const formSchema = z.object({
@@ -163,7 +164,7 @@ export default function EditProfileForm() {
         selectedCard={null}
         setSelectedCard={() => {}}
         disableButtons={true}
-        handleConfirmBooking={()=> new Promise(()=>null)}
+        handleConfirmBooking={() => new Promise(() => null)}
       ></SelectCreditCard>
     </main>
   );
