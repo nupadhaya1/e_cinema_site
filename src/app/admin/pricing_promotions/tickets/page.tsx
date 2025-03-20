@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Check, Save } from "lucide-react";
+import { useEffect } from "react";
 
 import { Button } from "~/components/ui/button";
 import {
@@ -59,32 +60,57 @@ export default function PricingForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      adultPrice: 20,
-      childPrice: 15,
-      seniorPrice: 10,
-      bookingFee: 1,
+      adultPrice: 0,
+      childPrice: 0,
+      seniorPrice: 0,
+      bookingFee: 0,
     },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSaving(true);
-
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    console.log("Saved values:", values);
-
-    toast({
-      title: "Prices updated successfully",
-      description: "The new ticket prices and booking fee have been saved.",
-      action: (
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500">
-          <Check className="h-4 w-4 text-white" />
-        </div>
-      ),
-    });
-
-    setIsSaving(false);
+    try {
+      const response = await fetch("/api/updateprices", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ ...values, id: 6 }),
+      });
+      // setRefresh(true);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "There was a problem updating prices.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   }
+
+  useEffect(() => {
+    // setIsLoading(true);
+    const fetchData = async () => {
+      try {
+        const response = await fetch("/api/updateprices");
+        if (!response.ok) throw new Error("Network response was not ok");
+
+        const result = await response.json();
+        form.reset({
+          adultPrice: result.adultPrice,
+          childPrice: result.childPrice,
+          seniorPrice: result.seniorPrice,
+        });
+      } catch (error) {
+        //setError(error.message);
+      } finally {
+        // setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []); // Empty dependency array runs effect only once on mount
 
   return (
     <SidebarProvider>
