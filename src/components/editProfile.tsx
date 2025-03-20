@@ -24,9 +24,10 @@ import { useToast } from "../hooks/use-toast";
 import { useEffect } from "react";
 import SelectCreditCard from "./booking/selectCreditCard";
 import { Card, CardContent } from "./ui/card";
+import isMobilePhone from "validator/lib/isMobilephone";
 
 const formSchema = z.object({
-  phoneNumber: z.string(),
+  phoneNumber: z.string().refine(isMobilePhone),
   address: z.string().min(1, "Address is required"),
   promotions: z.boolean(),
 });
@@ -162,6 +163,7 @@ export default function EditProfileForm() {
         selectedCard={null}
         setSelectedCard={() => {}}
         disableButtons={true}
+        handleConfirmBooking={()=> new Promise(()=>null)}
       ></SelectCreditCard>
     </main>
   );
