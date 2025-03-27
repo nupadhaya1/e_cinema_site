@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -75,8 +75,6 @@ const formSchema = z.object({
 
 export default function EditMoviePage() {
   const router = useRouter();
-  // const [movieId, setMovieId] = useState<string | null>(null);
-
   const searchParams = useSearchParams();
   const movieId = searchParams.get("id");
 
@@ -87,6 +85,8 @@ export default function EditMoviePage() {
   );
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [timeInput, setTimeInput] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -114,9 +114,12 @@ export default function EditMoviePage() {
 
     async function fetchMovie() {
       try {
+        setLoading(true);
+        setError(null);
         console.log("Fetching movie with ID:", movieId);
         const response = await fetch(`/api/movies?id=${movieId}`);
         console.log("Response status:", response.status);
+
         if (!response.ok) {
           const errorText = await response.text();
           console.error(
@@ -125,10 +128,12 @@ export default function EditMoviePage() {
             "Error:",
             errorText,
           );
-          throw new Error(`Failed to fetch movie: ${errorText}`);
+          throw new Error(errorText || `HTTP error ${response.status}`);
         }
+
         const movie = await response.json();
-        console.log("Fetched movie data:", movie);
+        console.log("Fetched movie data:", JSON.stringify(movie, null, 2));
+        console.log("Raw cast value:", movie.cast);
 
         form.reset({
           name: movie.name,
@@ -143,28 +148,60 @@ export default function EditMoviePage() {
           mpaa: movie.mpaa,
         });
 
+        // Handle cast with explicit validation
         let castArray: string[];
-        try {
-          castArray = JSON.parse(movie.cast);
-        } catch {
-          castArray = movie.cast.split(", ").filter(Boolean);
+        if (Array.isArray(movie.cast)) {
+          castArray = movie.cast;
+        } else if (typeof movie.cast === "string") {
+          try {
+            castArray = JSON.parse(movie.cast);
+            if (!Array.isArray(castArray)) {
+              console.warn("Parsed cast is not an array:", castArray);
+              castArray = [];
+            }
+          } catch (e) {
+            console.error("Failed to parse cast string:", movie.cast, e);
+            castArray = [];
+          }
+        } else {
+          console.warn(
+            "Cast is neither an array nor a valid string:",
+            movie.cast,
+          );
+          castArray = [];
         }
+        console.log("Setting cast to:", castArray);
         setCast(castArray);
 
-        const parsedShowdate = JSON.parse(movie.showdate) as {
-          date: string;
-          times: string[];
-        }[];
-        const parsedShowtime = JSON.parse(movie.showtime) as string[][];
-        const showDatesData = parsedShowdate.map((entry, index) => ({
-          date: new Date(entry.date),
-          times: parsedShowtime[index] || entry.times,
-        }));
+        // Validate showdate and showtime
+        const showdateArray = Array.isArray(movie.showdate)
+          ? movie.showdate
+          : [];
+        const showtimeArray = Array.isArray(movie.showtime)
+          ? movie.showtime
+          : [];
+        console.log(
+          "Raw showdate:",
+          movie.showdate,
+          "Raw showtime:",
+          movie.showtime,
+        );
+
+        const showDatesData = showdateArray.map(
+          (entry: { date: string; times: string[] }, index: number) => ({
+            date: new Date(entry.date),
+            times: showtimeArray[index] || entry.times || [],
+          }),
+        );
         setShowDates(showDatesData);
       } catch (error) {
         console.error("Error fetching movie:", error);
-        alert("Failed to load movie data");
+        setError(
+          `Failed to load movie data: ${error instanceof Error ? error.message : "Unknown error"}`,
+        );
         router.push("/admin/movies");
+      } finally {
+        setLoading(false);
       }
     }
     fetchMovie();
@@ -191,7 +228,7 @@ export default function EditMoviePage() {
       url: values.url,
       category: values.category,
       genre: values.genre,
-      cast: cast,
+      cast, // Sent as array, API will stringify
       director: values.director,
       producer: values.producer,
       synopsis: values.synopsis,
@@ -207,6 +244,7 @@ export default function EditMoviePage() {
     };
 
     try {
+      setLoading(true);
       const response = await fetch("/api/movies", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -225,6 +263,45 @@ export default function EditMoviePage() {
       alert(
         `Failed to update movie: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!movieId) {
+      alert("No movie ID provided");
+      return;
+    }
+
+    if (
+      !confirm(
+        "Are you sure you want to delete this movie? This action cannot be undone.",
+      )
+    ) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/movies?id=${movieId}`, {
+        method: "DELETE", // Fixed: Use colon (:) instead of equals (=)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to delete movie");
+      }
+
+      alert("Movie deleted successfully!");
+      router.push("/admin/movies");
+    } catch (error) {
+      console.error("Error deleting movie:", error);
+      alert(
+        `Failed to delete movie: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -278,6 +355,14 @@ export default function EditMoviePage() {
     }
   };
 
+  if (loading) {
+    return <div>Loading movie data...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
   return (
     <SidebarProvider>
       <AdminSidebar />
@@ -304,9 +389,19 @@ export default function EditMoviePage() {
           </div>
         </header>
         <Card className="rounded-none border-none">
-          <CardHeader>
-            <CardTitle className="text-2xl">Edit Movie</CardTitle>
-            <CardDescription>Update details for this movie.</CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="text-2xl">Edit Movie</CardTitle>
+              <CardDescription>Update details for this movie.</CardDescription>
+            </div>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={loading}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete Movie
+            </Button>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -322,7 +417,11 @@ export default function EditMoviePage() {
                       <FormItem>
                         <FormLabel>Movie Name</FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter movie name" {...field} />
+                          <Input
+                            placeholder="Enter movie name"
+                            {...field}
+                            disabled={loading}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -335,7 +434,11 @@ export default function EditMoviePage() {
                       <FormItem>
                         <FormLabel>Poster URL</FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter poster URL" {...field} />
+                          <Input
+                            placeholder="Enter poster URL"
+                            {...field}
+                            disabled={loading}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -350,6 +453,7 @@ export default function EditMoviePage() {
                         <Select
                           onValueChange={field.onChange}
                           defaultValue={field.value}
+                          disabled={loading}
                         >
                           <FormControl>
                             <SelectTrigger>
@@ -378,6 +482,7 @@ export default function EditMoviePage() {
                         <Select
                           onValueChange={field.onChange}
                           defaultValue={field.value}
+                          disabled={loading}
                         >
                           <FormControl>
                             <SelectTrigger>
@@ -411,7 +516,11 @@ export default function EditMoviePage() {
                       <FormItem>
                         <FormLabel>Director</FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter director name" {...field} />
+                          <Input
+                            placeholder="Enter director name"
+                            {...field}
+                            disabled={loading}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -424,7 +533,11 @@ export default function EditMoviePage() {
                       <FormItem>
                         <FormLabel>Producer</FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter producer name" {...field} />
+                          <Input
+                            placeholder="Enter producer name"
+                            {...field}
+                            disabled={loading}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -445,29 +558,42 @@ export default function EditMoviePage() {
                           addCastMember();
                         }
                       }}
+                      disabled={loading}
                     />
-                    <Button type="button" onClick={addCastMember} size="sm">
+                    <Button
+                      type="button"
+                      onClick={addCastMember}
+                      size="sm"
+                      disabled={loading}
+                    >
                       <Plus className="mr-1 h-4 w-4" /> Add
                     </Button>
                   </div>
                   <div className="mt-2 flex flex-wrap gap-2">
-                    {cast.map((member, index) => (
-                      <Badge
-                        key={index}
-                        variant="secondary"
-                        className="flex items-center gap-1"
-                      >
-                        {member}
-                        <button
-                          type="button"
-                          onClick={() => removeCastMember(index)}
-                          className="ml-1 text-muted-foreground hover:text-foreground"
+                    {cast.length > 0 ? (
+                      cast.map((member, index) => (
+                        <Badge
+                          key={index}
+                          variant="secondary"
+                          className="flex items-center gap-1"
                         >
-                          <Trash2 className="h-3 w-3" />
-                          <span className="sr-only">Remove {member}</span>
-                        </button>
-                      </Badge>
-                    ))}
+                          {member}
+                          <button
+                            type="button"
+                            onClick={() => removeCastMember(index)}
+                            className="ml-1 text-muted-foreground hover:text-foreground"
+                            disabled={loading}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                            <span className="sr-only">Remove {member}</span>
+                          </button>
+                        </Badge>
+                      ))
+                    ) : (
+                      <span className="text-muted-foreground">
+                        No cast members added
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -482,6 +608,7 @@ export default function EditMoviePage() {
                           placeholder="Enter movie synopsis"
                           className="min-h-[120px]"
                           {...field}
+                          disabled={loading}
                         />
                       </FormControl>
                       <FormMessage />
@@ -497,7 +624,11 @@ export default function EditMoviePage() {
                       <FormItem>
                         <FormLabel>Trailer URL</FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter trailer URL" {...field} />
+                          <Input
+                            placeholder="Enter trailer URL"
+                            {...field}
+                            disabled={loading}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -520,6 +651,7 @@ export default function EditMoviePage() {
                             onChange={(e) =>
                               field.onChange(parseInt(e.target.value, 10) || 0)
                             }
+                            disabled={loading}
                           />
                         </FormControl>
                         <FormMessage />
@@ -535,6 +667,7 @@ export default function EditMoviePage() {
                         <Select
                           onValueChange={field.onChange}
                           defaultValue={field.value}
+                          disabled={loading}
                         >
                           <FormControl>
                             <SelectTrigger>
@@ -575,6 +708,7 @@ export default function EditMoviePage() {
                           <Button
                             variant="outline"
                             className="w-full justify-start text-left font-normal"
+                            disabled={loading}
                           >
                             <CalendarIcon className="mr-2 h-4 w-4" />
                             {selectedDate ? (
@@ -607,8 +741,14 @@ export default function EditMoviePage() {
                               addShowTime();
                             }
                           }}
+                          disabled={loading}
                         />
-                        <Button type="button" onClick={addShowTime} size="sm">
+                        <Button
+                          type="button"
+                          onClick={addShowTime}
+                          size="sm"
+                          disabled={loading}
+                        >
                           <Plus className="mr-1 h-4 w-4" /> Add
                         </Button>
                       </div>
@@ -632,6 +772,7 @@ export default function EditMoviePage() {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => removeShowDate(dateIndex)}
+                                disabled={loading}
                               >
                                 <Trash2 className="h-4 w-4" />
                                 <span className="sr-only">Remove date</span>
@@ -651,6 +792,7 @@ export default function EditMoviePage() {
                                       removeShowTime(dateIndex, timeIndex)
                                     }
                                     className="ml-1 text-muted-foreground hover:text-foreground"
+                                    disabled={loading}
                                   >
                                     <Trash2 className="h-3 w-3" />
                                     <span className="sr-only">
@@ -669,8 +811,8 @@ export default function EditMoviePage() {
 
                 <Separator />
 
-                <Button type="submit" className="w-full">
-                  Save Changes
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? "Saving..." : "Save Changes"}
                 </Button>
               </form>
             </Form>

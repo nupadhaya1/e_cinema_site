@@ -13,11 +13,13 @@ export async function GET(request: NextRequest) {
         { status: 400 },
       );
     }
-    const parsedId = parseInt(id);
+
+    const parsedId = parseInt(id, 10);
     if (isNaN(parsedId)) {
       console.error("Invalid ID format:", id);
       return NextResponse.json({ error: "Invalid movie ID" }, { status: 400 });
     }
+
     const movie = await db
       .select()
       .from(movies)
@@ -27,6 +29,7 @@ export async function GET(request: NextRequest) {
       console.error("Movie not found for ID:", parsedId);
       return NextResponse.json({ error: "Movie not found" }, { status: 404 });
     }
+
     console.log("Fetched movie:", JSON.stringify(movie[0], null, 2));
     return NextResponse.json(movie[0], { status: 200 });
   } catch (error) {
@@ -71,21 +74,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    let castValue: string;
-    if (Array.isArray(body.cast) && body.cast.length > 0) {
-      castValue = JSON.stringify(body.cast);
-    } else {
-      console.warn("Cast is invalid or empty, using default:", body.cast);
-      castValue = "[]";
-    }
-    console.log("Processed cast value:", castValue);
-
     const movieData = {
       name: body.name as string,
       url: body.url as string,
       category: body.category as string,
       genre: body.genre as string,
-      cast: castValue,
+      cast: JSON.stringify(body.cast as string[]),
       director: body.director as string,
       producer: body.producer as string,
       synopsis: body.synopsis as string,
@@ -125,10 +119,17 @@ export async function PUT(request: NextRequest) {
 
     const id = body.id;
     if (!id) {
+      console.error("No ID provided in request body");
       return NextResponse.json(
         { error: "Movie ID is required" },
         { status: 400 },
       );
+    }
+
+    const parsedId = parseInt(id, 10);
+    if (isNaN(parsedId)) {
+      console.error("Invalid ID format:", id);
+      return NextResponse.json({ error: "Invalid movie ID" }, { status: 400 });
     }
 
     const requiredFields = [
@@ -157,21 +158,12 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    let castValue: string;
-    if (Array.isArray(body.cast) && body.cast.length > 0) {
-      castValue = JSON.stringify(body.cast);
-    } else {
-      console.warn("Cast is invalid or empty, using default:", body.cast);
-      castValue = "[]";
-    }
-    console.log("Processed cast value:", castValue);
-
     const movieData = {
       name: body.name as string,
       url: body.url as string,
       category: body.category as string,
       genre: body.genre as string,
-      cast: castValue,
+      cast: JSON.stringify(body.cast as string[]),
       director: body.director as string,
       producer: body.producer as string,
       synopsis: body.synopsis as string,
@@ -193,10 +185,11 @@ export async function PUT(request: NextRequest) {
     const updatedMovie = await db
       .update(movies)
       .set(movieData)
-      .where(eq(movies.id, parseInt(id)))
+      .where(eq(movies.id, parsedId))
       .returning();
 
     if (!updatedMovie.length) {
+      console.error("Movie not found for ID:", parsedId);
       return NextResponse.json({ error: "Movie not found" }, { status: 404 });
     }
 
@@ -207,6 +200,49 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json(
       {
         error: `Failed to update movie: ${error instanceof Error ? error.message : "Unknown error"}`,
+      },
+      { status: 500 },
+    );
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const id = request.nextUrl.searchParams.get("id");
+    if (!id) {
+      console.error("No ID provided in query");
+      return NextResponse.json(
+        { error: "Movie ID is required" },
+        { status: 400 },
+      );
+    }
+
+    const parsedId = parseInt(id, 10);
+    if (isNaN(parsedId)) {
+      console.error("Invalid ID format:", id);
+      return NextResponse.json({ error: "Invalid movie ID" }, { status: 400 });
+    }
+
+    const deletedMovie = await db
+      .delete(movies)
+      .where(eq(movies.id, parsedId))
+      .returning();
+
+    if (!deletedMovie.length) {
+      console.error("Movie not found for ID:", parsedId);
+      return NextResponse.json({ error: "Movie not found" }, { status: 404 });
+    }
+
+    console.log("Deleted movie:", JSON.stringify(deletedMovie[0], null, 2));
+    return NextResponse.json(
+      { message: "Movie deleted successfully" },
+      { status: 200 },
+    );
+  } catch (error) {
+    console.error("Error deleting movie:", error);
+    return NextResponse.json(
+      {
+        error: `Failed to delete movie: ${error instanceof Error ? error.message : "Unknown error"}`,
       },
       { status: 500 },
     );
