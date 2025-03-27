@@ -171,9 +171,11 @@ export default async function MoviesPage() {
                             </Badge>
                           </div>
                         </div>
-                        <Button variant="ghost" size="icon">
-                          <Edit className="h-4 w-4" />
-                        </Button>
+                        <Link href={`/admin/movies/edit?id=${movie.id}`}>
+                          <Button variant="ghost" size="icon">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </Link>
                       </div>
                       <div className="mt-2 flex items-center gap-2">
                         <div className="flex items-center">

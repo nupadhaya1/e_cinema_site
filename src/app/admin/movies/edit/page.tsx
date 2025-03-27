@@ -75,12 +75,10 @@ const formSchema = z.object({
 
 export default function EditMoviePage() {
   const router = useRouter();
-  const [movieId, setMovieId] = useState<string | null>(null);
+  // const [movieId, setMovieId] = useState<string | null>(null);
 
-  useEffect(() => {
-    const searchParams = new URLSearchParams(window.location.search);
-    setMovieId(searchParams.get("id"));
-  }, []);
+  const searchParams = useSearchParams();
+  const movieId = searchParams.get("id");
 
   const [cast, setCast] = useState<string[]>([]);
   const [castInput, setCastInput] = useState("");
