@@ -10,7 +10,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const promotion = await request.json();
-   console.log(promotion);
+  console.log(promotion);
   // console.log({...promotion, userID: user.userId});
   if (promotion.delete != null && promotion.delete) {
     try {
@@ -26,18 +26,21 @@ export async function POST(request: Request) {
     }
   } else {
     try {
-        let exists = await db.query.promotions.findFirst({
-            where: (promotions, { eq }) => eq(promotions.code, promotion.code),
-          });
-          if(!exists){
-            await db.insert(promotions).values({
-                ...promotion,
-              });
-          } else {
-        await db.update(promotions).set({
-             ...promotion
-          }).where(eq(promotions.code, promotion.code));
-          }
+      let exists = await db.query.promotions.findFirst({
+        where: (promotions, { eq }) => eq(promotions.code, promotion.code),
+      });
+      if (!exists) {
+        await db.insert(promotions).values({
+          ...promotion,
+        });
+      } else {
+        await db
+          .update(promotions)
+          .set({
+            ...promotion,
+          })
+          .where(eq(promotions.code, promotion.code));
+      }
 
       return NextResponse.json({ success: true });
     } catch (error) {
@@ -60,7 +63,10 @@ export async function GET() {
     let promotions = await db.query.promotions.findMany();
 
     if (!promotions) {
-      return NextResponse.json({ error: "promotions not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "promotions not found" },
+        { status: 404 },
+      );
     }
 
     return NextResponse.json(promotions);
@@ -68,6 +74,40 @@ export async function GET() {
     console.error("Error fetching promotions:", error);
     return NextResponse.json(
       { error: "Failed to fetch promotions" },
+      { status: 500 },
+    );
+  }
+}
+
+export async function PUT(request: Request) {
+  const user = await auth();
+  if (!user || !user.userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    const promotion = await request.json();
+
+    if (!promotion.id) {
+      return NextResponse.json(
+        { error: "Promotion ID is required" },
+        { status: 400 },
+      );
+    }
+
+    const updated = await db
+      .update(promotions)
+      .set({
+        code: promotion.code,
+        discount: promotion.discount,
+      })
+      .where(eq(promotions.id, promotion.id));
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Error updating promotion:", error);
+    return NextResponse.json(
+      { error: "Failed to update promotion" },
       { status: 500 },
     );
   }

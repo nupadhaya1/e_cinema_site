@@ -102,8 +102,9 @@ export const prices = createTable("prices", {
 });
 
 export const promotions = createTable("promotions", {
-  code: text("code").unique().primaryKey().notNull(),
+  code: text("code").notNull(),
   discount: doublePrecision("discount").notNull(),
+  id: serial("id").primaryKey(),
 });
 
 export const confirmed_bookings = createTable("confirmed_bookings", {
