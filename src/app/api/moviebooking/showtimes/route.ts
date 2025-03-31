@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { db } from "~/server/db";
+import { showtimes } from "~/server/db/schema";
+import { and, eq } from "drizzle-orm";
 
 export async function GET(request: Request) {
   const user = await auth();
@@ -13,19 +15,25 @@ export async function GET(request: Request) {
   const movieId = searchParams.get("movieId");
 
   try {
-    let showtimes = await db.query.showtimes.findMany({
-      where: (showtimes, { eq }) => eq(showtimes.movieId, Number(movieId)),
-    });
+    // let showtimes = await db.query.showtimes.findMany({
+    //   where: (showtimes, { eq }) => eq(showtimes.movieId, Number(movieId) && eq(showtimes.archived, false)),
+    // });
+    let dbshowtimes = await db.select().from(showtimes).where(and(
+      eq(showtimes.movieId, Number(movieId)),
+      eq(showtimes.archived, false)
+    ))
+    console.log(dbshowtimes);
 
-    if (!showtimes) {
+    if (!dbshowtimes) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     //console.log(showtimes);
     return NextResponse.json(
-      showtimes.map((showtime) => {
-        return { id: showtime.id, time: showtime.time };
-      }),
+      // showtimes.map((showtime) => {
+      //   return { id: showtime.id, time: showtime.time };
+      // }),
+      dbshowtimes
     );
   } catch (error) {
     console.error("Error fetching user:", error);
