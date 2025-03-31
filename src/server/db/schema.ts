@@ -2,6 +2,7 @@
 // https://orm.drizzle.team/docs/sql-schema-declaration
 
 import { config } from "dotenv";
+import { unique } from "drizzle-orm/pg-core";
 import {
   index,
   pgTableCreator,
@@ -36,14 +37,15 @@ export const movies = createTable("movies", {
   trailerUrl: text("trailer_url").notNull(), // Trailer URL (matches API field)
   imdb: integer("imdb").notNull(), // IMDb rating (0-10)
   mpaa: text("mpaa").notNull(), // MPAA rating (e.g., "PG-13")
-  showdate: jsonb("showdate").notNull(), // Array of { date: string, times: string[] }
-  showtime: jsonb("showtime").notNull(), // Array of string[] (times per date)
+  //showdate: jsonb("showdate").notNull(), // Array of { date: string, times: string[] }
+  //showtime: jsonb("showtime").notNull(), // Array of string[] (times per date)
   reviews: jsonb("reviews").default(null), // Optional array of reviews as JSON
 });
 
 // Type inference for TypeScript
 export type Movie = typeof movies.$inferSelect; // For selecting movies
 export type NewMovie = typeof movies.$inferInsert; // For inserting movies
+export type Showtime = typeof showtimes.$inferInsert
 
 export const users = createTable("users", {
   userID: varchar("userID", { length: 256 }).primaryKey(),
@@ -78,7 +80,11 @@ export const showtimes = createTable("showtimes", {
     onDelete: "cascade",
   }),
   time: text("time").notNull(),
-});
+  date: text("date").notNull(),
+  archived: boolean("archived").default(false),
+}, (table) => ({
+  uniqueComposite: unique().on(table.time, table.movieId, table.date)
+}));
 
 export const seats = createTable("seats", {
   id: serial("id").notNull().unique().primaryKey(),

@@ -71,7 +71,21 @@ const formSchema = z.object({
     .max(10, "IMDb must be at most 10"),
   mpaa: z.string().min(1, "MPAA rating is required"),
 });
-
+export const VALIDHOURS = [
+  "1",
+  "2",
+  "3",
+  "4",
+  "5",
+  "6",
+  "7",
+  "8",
+  "9",
+  "10",
+  "11",
+  "12",
+];
+export const VALIDMINUTES = ["00", "15", "30", "45"];
 export default function AddMovieForm() {
   const [cast, setCast] = useState<string[]>([]);
   const [castInput, setCastInput] = useState("");
@@ -79,7 +93,12 @@ export default function AddMovieForm() {
     [],
   );
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-  const [timeInput, setTimeInput] = useState("");
+  //const [timeInput, setTimeInput] = useState("");
+  const [hour, setHour] = useState<string | undefined>(undefined);
+  const [minute, setMinute] = useState<string | undefined>(undefined);
+  const [ampm, setampm] = useState<string | undefined>(undefined);
+
+  const [loading, setLoading] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -98,32 +117,27 @@ export default function AddMovieForm() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    setLoading(true);
     if (cast.length === 0) {
       alert("Please add at least one cast member.");
+      setLoading(false);
       return;
     }
     if (showDates.length === 0) {
       alert("Please add at least one show date and time.");
+      setLoading(false);
       return;
     }
 
     const movieData = {
-      name: values.name,
-      url: values.url,
-      category: values.category,
-      genre: values.genre,
+      ...values,
       cast: cast, // Array of strings
-      director: values.director,
-      producer: values.producer,
-      synopsis: values.synopsis,
-      trailerUrl: values.trailerUrl, // Matches backend and schema
-      imdb: values.imdb,
-      mpaa: values.mpaa,
       showdate: showDates.map((show) => ({
-        date: show.date.toISOString(),
+        date: show.date
+          .toISOString(),
+          //.substring(0, show.date.toISOString().indexOf("T")),
         times: show.times,
       })),
-      showtime: showDates.map((show) => show.times),
       reviews: [], // Optional field
     };
 
@@ -152,12 +166,17 @@ export default function AddMovieForm() {
       setCast([]);
       setShowDates([]);
       setSelectedDate(undefined);
-      setTimeInput("");
+      setHour(undefined);
+      setMinute(undefined);
+      setampm(undefined);
+      //setTimeInput("");
     } catch (error) {
       console.error("Error submitting movie:", error);
       alert(
         `Failed to add movie: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -173,6 +192,11 @@ export default function AddMovieForm() {
   };
 
   const addShowTime = () => {
+    if (hour == undefined || minute == undefined || ampm == undefined) {
+      alert("invalid time format");
+      return;
+    }
+    let timeInput = `${hour}:${minute} ${ampm}`;
     if (selectedDate && timeInput.trim()) {
       const existingDateIndex = showDates.findIndex(
         (item) => item.date.toDateString() === selectedDate.toDateString(),
@@ -191,7 +215,7 @@ export default function AddMovieForm() {
           { date: selectedDate, times: [timeInput.trim()] },
         ]);
       }
-      setTimeInput("");
+      //setTimeInput("");
     }
   };
 
@@ -292,10 +316,10 @@ export default function AddMovieForm() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="currently_running">
+                            <SelectItem value="Currently Running">
                               Currently Running
                             </SelectItem>
-                            <SelectItem value="coming_soon">
+                            <SelectItem value="Coming Soon">
                               Coming Soon
                             </SelectItem>
                           </SelectContent>
@@ -381,7 +405,12 @@ export default function AddMovieForm() {
                         }
                       }}
                     />
-                    <Button type="button" onClick={addCastMember} size="sm">
+                    <Button
+                      type="button"
+                      onClick={addCastMember}
+                      size="sm"
+                      disabled={loading}
+                    >
                       <Plus className="mr-1 h-4 w-4" /> Add
                     </Button>
                   </div>
@@ -531,8 +560,9 @@ export default function AddMovieForm() {
                     </div>
                     <div>
                       <FormLabel>Time</FormLabel>
+
                       <div className="flex items-center gap-2">
-                        <Input
+                        {/* <Input
                           placeholder="e.g., 7:30 PM"
                           value={timeInput}
                           onChange={(e) => setTimeInput(e.target.value)}
@@ -542,8 +572,70 @@ export default function AddMovieForm() {
                               addShowTime();
                             }
                           }}
-                        />
-                        <Button type="button" onClick={addShowTime} size="sm">
+                        /> */}
+                        {!loading && (
+                          <Select
+                            onValueChange={(val) => setHour(val)}
+                            value={hour}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="hours" />
+                              </SelectTrigger>
+                            </FormControl>
+
+                            <SelectContent>
+                              {VALIDHOURS.map((hour, index) => (
+                                <SelectItem key={"hours" + index} value={hour}>
+                                  {hour}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}{" "}
+                        :
+                        {!loading && (
+                          <Select
+                            onValueChange={(val) => setMinute(val)}
+                            value={minute}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="minutes" />
+                              </SelectTrigger>
+                            </FormControl>
+
+                            <SelectContent>
+                              {VALIDMINUTES.map((min, index) => (
+                                <SelectItem key={"minutes" + index} value={min}>
+                                  {min}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                        {!loading && (
+                          <Select
+                            onValueChange={(val) => setampm(val)}
+                            value={ampm}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="AM/PM" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="AM">AM</SelectItem>
+                              <SelectItem value="PM">PM</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        )}
+                        <Button
+                          type="button"
+                          onClick={addShowTime}
+                          size="sm"
+                          disabled={loading}
+                        >
                           <Plus className="mr-1 h-4 w-4" /> Add
                         </Button>
                       </div>
@@ -604,7 +696,7 @@ export default function AddMovieForm() {
 
                 <Separator />
 
-                <Button type="submit" className="w-full">
+                <Button type="submit" className="w-full" disabled={loading}>
                   Add Movie
                 </Button>
               </form>

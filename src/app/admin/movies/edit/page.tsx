@@ -1,5 +1,5 @@
 "use client";
-
+import { VALIDHOURS, VALIDMINUTES } from "../add/page";
 import type React from "react";
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { CalendarIcon, Plus, Trash2 } from "lucide-react";
-import { format } from "date-fns";
+import { format, setDate } from "date-fns";
 
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -56,6 +56,8 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "~/components/ui/breadcrumb";
+import { Showtime } from "~/server/db/schema";
+import { date } from "drizzle-orm/mysql-core";
 
 const formSchema = z.object({
   name: z.string().min(1, "Movie name is required"),
@@ -87,6 +89,9 @@ export default function EditMoviePage() {
   const [timeInput, setTimeInput] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [hour, setHour] = useState<string | undefined>(undefined);
+  const [minute, setMinute] = useState<string | undefined>(undefined);
+  const [ampm, setampm] = useState<string | undefined>(undefined);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -173,27 +178,38 @@ export default function EditMoviePage() {
         console.log("Setting cast to:", castArray);
         setCast(castArray);
 
-        // Validate showdate and showtime
-        const showdateArray = Array.isArray(movie.showdate)
-          ? movie.showdate
-          : [];
-        const showtimeArray = Array.isArray(movie.showtime)
-          ? movie.showtime
-          : [];
-        console.log(
-          "Raw showdate:",
-          movie.showdate,
-          "Raw showtime:",
-          movie.showtime,
+        const showTimeResponse = await fetch(
+          "/api/moviebooking/showtimes?movieId=" + movieId,
         );
+        const result: Showtime[] = await showTimeResponse.json();
+        //console.log(result);
+        //shit was not working so you have the following magik
+        let a = result.map((showtime) => {
+          return { date: showtime.date, time: showtime.time };
+        });
+        let b: any[] = [];
+        let c = true;
+        for (let i = 0; i < a.length; i++) {
+          for (let j = 0; j < b.length; j++) {
+            if (b[j].date == a[i]?.date) {
+              b[j].times.push(a[i]?.time); //= [...b[j].times, ...[]];
+              c = false;
+              break;
+            }
+          }
+          if (c) {
+            b = [...b, ...[{ date: a[i]?.date, times: [a[i]?.time] }]];
+          }
+          c = true;
+        }
+        //console.log(b);
 
-        const showDatesData = showdateArray.map(
-          (entry: { date: string; times: string[] }, index: number) => ({
-            date: new Date(entry.date),
-            times: showtimeArray[index] || entry.times || [],
-          }),
-        );
-        setShowDates(showDatesData);
+        b = b.map((e) => {
+          return { date: new Date(e.date), times: e.times };
+        });
+        //console.log(b);
+        setShowDates(b);
+        //end magik
       } catch (error) {
         console.error("Error fetching movie:", error);
         setError(
@@ -239,7 +255,6 @@ export default function EditMoviePage() {
         date: show.date.toISOString(),
         times: show.times,
       })),
-      showtime: showDates.map((show) => show.times),
       reviews: [],
     };
 
@@ -317,6 +332,11 @@ export default function EditMoviePage() {
   };
 
   const addShowTime = () => {
+    if (hour == undefined || minute == undefined || ampm == undefined) {
+      alert("invalid time format");
+      return;
+    }
+    let timeInput = `${hour}:${minute} ${ampm}`;
     if (selectedDate && timeInput.trim()) {
       const existingDateIndex = showDates.findIndex(
         (item) => item.date.toDateString() === selectedDate.toDateString(),
@@ -335,7 +355,7 @@ export default function EditMoviePage() {
           { date: selectedDate, times: [timeInput.trim()] },
         ]);
       }
-      setTimeInput("");
+      //setTimeInput("");
     }
   };
 
@@ -378,7 +398,9 @@ export default function EditMoviePage() {
                 </BreadcrumbItem>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
-                  <BreadcrumbLink href="/admin/movies">Movies</BreadcrumbLink>
+                  <BreadcrumbLink href="/admin/movies/add">
+                    Movies
+                  </BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
@@ -389,11 +411,9 @@ export default function EditMoviePage() {
           </div>
         </header>
         <Card className="rounded-none border-none">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle className="text-2xl">Edit Movie</CardTitle>
-              <CardDescription>Update details for this movie.</CardDescription>
-            </div>
+          <CardHeader>
+            <CardTitle className="text-2xl">Edit Movie</CardTitle>
+            <CardDescription>Update details for this movie.</CardDescription>
             <Button
               variant="destructive"
               onClick={handleDelete}
@@ -417,11 +437,7 @@ export default function EditMoviePage() {
                       <FormItem>
                         <FormLabel>Movie Name</FormLabel>
                         <FormControl>
-                          <Input
-                            placeholder="Enter movie name"
-                            {...field}
-                            disabled={loading}
-                          />
+                          <Input placeholder="Enter movie name" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -434,11 +450,7 @@ export default function EditMoviePage() {
                       <FormItem>
                         <FormLabel>Poster URL</FormLabel>
                         <FormControl>
-                          <Input
-                            placeholder="Enter poster URL"
-                            {...field}
-                            disabled={loading}
-                          />
+                          <Input placeholder="Enter poster URL" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -453,7 +465,6 @@ export default function EditMoviePage() {
                         <Select
                           onValueChange={field.onChange}
                           defaultValue={field.value}
-                          disabled={loading}
                         >
                           <FormControl>
                             <SelectTrigger>
@@ -461,10 +472,10 @@ export default function EditMoviePage() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="currently_running">
+                            <SelectItem value="Currently Running">
                               Currently Running
                             </SelectItem>
-                            <SelectItem value="coming_soon">
+                            <SelectItem value="Coming Soon">
                               Coming Soon
                             </SelectItem>
                           </SelectContent>
@@ -482,7 +493,6 @@ export default function EditMoviePage() {
                         <Select
                           onValueChange={field.onChange}
                           defaultValue={field.value}
-                          disabled={loading}
                         >
                           <FormControl>
                             <SelectTrigger>
@@ -516,11 +526,7 @@ export default function EditMoviePage() {
                       <FormItem>
                         <FormLabel>Director</FormLabel>
                         <FormControl>
-                          <Input
-                            placeholder="Enter director name"
-                            {...field}
-                            disabled={loading}
-                          />
+                          <Input placeholder="Enter director name" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -533,11 +539,7 @@ export default function EditMoviePage() {
                       <FormItem>
                         <FormLabel>Producer</FormLabel>
                         <FormControl>
-                          <Input
-                            placeholder="Enter producer name"
-                            {...field}
-                            disabled={loading}
-                          />
+                          <Input placeholder="Enter producer name" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -558,7 +560,6 @@ export default function EditMoviePage() {
                           addCastMember();
                         }
                       }}
-                      disabled={loading}
                     />
                     <Button
                       type="button"
@@ -570,30 +571,23 @@ export default function EditMoviePage() {
                     </Button>
                   </div>
                   <div className="mt-2 flex flex-wrap gap-2">
-                    {cast.length > 0 ? (
-                      cast.map((member, index) => (
-                        <Badge
-                          key={index}
-                          variant="secondary"
-                          className="flex items-center gap-1"
+                    {cast.map((member, index) => (
+                      <Badge
+                        key={index}
+                        variant="secondary"
+                        className="flex items-center gap-1"
+                      >
+                        {member}
+                        <button
+                          type="button"
+                          onClick={() => removeCastMember(index)}
+                          className="ml-1 text-muted-foreground hover:text-foreground"
                         >
-                          {member}
-                          <button
-                            type="button"
-                            onClick={() => removeCastMember(index)}
-                            className="ml-1 text-muted-foreground hover:text-foreground"
-                            disabled={loading}
-                          >
-                            <Trash2 className="h-3 w-3" />
-                            <span className="sr-only">Remove {member}</span>
-                          </button>
-                        </Badge>
-                      ))
-                    ) : (
-                      <span className="text-muted-foreground">
-                        No cast members added
-                      </span>
-                    )}
+                          <Trash2 className="h-3 w-3" />
+                          <span className="sr-only">Remove {member}</span>
+                        </button>
+                      </Badge>
+                    ))}
                   </div>
                 </div>
 
@@ -608,7 +602,6 @@ export default function EditMoviePage() {
                           placeholder="Enter movie synopsis"
                           className="min-h-[120px]"
                           {...field}
-                          disabled={loading}
                         />
                       </FormControl>
                       <FormMessage />
@@ -624,11 +617,7 @@ export default function EditMoviePage() {
                       <FormItem>
                         <FormLabel>Trailer URL</FormLabel>
                         <FormControl>
-                          <Input
-                            placeholder="Enter trailer URL"
-                            {...field}
-                            disabled={loading}
-                          />
+                          <Input placeholder="Enter trailer URL" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -651,7 +640,6 @@ export default function EditMoviePage() {
                             onChange={(e) =>
                               field.onChange(parseInt(e.target.value, 10) || 0)
                             }
-                            disabled={loading}
                           />
                         </FormControl>
                         <FormMessage />
@@ -667,7 +655,6 @@ export default function EditMoviePage() {
                         <Select
                           onValueChange={field.onChange}
                           defaultValue={field.value}
-                          disabled={loading}
                         >
                           <FormControl>
                             <SelectTrigger>
@@ -708,7 +695,6 @@ export default function EditMoviePage() {
                           <Button
                             variant="outline"
                             className="w-full justify-start text-left font-normal"
-                            disabled={loading}
                           >
                             <CalendarIcon className="mr-2 h-4 w-4" />
                             {selectedDate ? (
@@ -730,19 +716,76 @@ export default function EditMoviePage() {
                     </div>
                     <div>
                       <FormLabel>Time</FormLabel>
+
                       <div className="flex items-center gap-2">
-                        <Input
-                          placeholder="e.g., 7:30 PM"
-                          value={timeInput}
-                          onChange={(e) => setTimeInput(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.preventDefault();
-                              addShowTime();
-                            }
-                          }}
-                          disabled={loading}
-                        />
+                        {/* <Input
+                            placeholder="e.g., 7:30 PM"
+                            value={timeInput}
+                            onChange={(e) => setTimeInput(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                addShowTime();
+                              }
+                            }}
+                          /> */}
+                        {!loading && (
+                          <Select
+                            onValueChange={(val) => setHour(val)}
+                            value={hour}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="hours" />
+                              </SelectTrigger>
+                            </FormControl>
+
+                            <SelectContent>
+                              {VALIDHOURS.map((hour, index) => (
+                                <SelectItem key={"hours" + index} value={hour}>
+                                  {hour}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}{" "}
+                        :
+                        {!loading && (
+                          <Select
+                            onValueChange={(val) => setMinute(val)}
+                            value={minute}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="minutes" />
+                              </SelectTrigger>
+                            </FormControl>
+
+                            <SelectContent>
+                              {VALIDMINUTES.map((min, index) => (
+                                <SelectItem key={"minutes" + index} value={min}>
+                                  {min}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                        {!loading && (
+                          <Select
+                            onValueChange={(val) => setampm(val)}
+                            value={ampm}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="AM/PM" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="AM">AM</SelectItem>
+                              <SelectItem value="PM">PM</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        )}
                         <Button
                           type="button"
                           onClick={addShowTime}
@@ -772,7 +815,6 @@ export default function EditMoviePage() {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => removeShowDate(dateIndex)}
-                                disabled={loading}
                               >
                                 <Trash2 className="h-4 w-4" />
                                 <span className="sr-only">Remove date</span>
@@ -792,7 +834,6 @@ export default function EditMoviePage() {
                                       removeShowTime(dateIndex, timeIndex)
                                     }
                                     className="ml-1 text-muted-foreground hover:text-foreground"
-                                    disabled={loading}
                                   >
                                     <Trash2 className="h-3 w-3" />
                                     <span className="sr-only">
@@ -812,7 +853,7 @@ export default function EditMoviePage() {
                 <Separator />
 
                 <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? "Saving..." : "Save Changes"}
+                  {loading ? "Updating" : "Update Movie"}
                 </Button>
               </form>
             </Form>

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "~/server/db/index";
-import { movies } from "~/server/db/schema";
-import { eq } from "drizzle-orm";
+import { movies, showtimes } from "~/server/db/schema";
+import { eq, and } from "drizzle-orm";
+import { date } from "drizzle-orm/mysql-core";
 
 export async function GET(request: NextRequest) {
   try {
@@ -23,8 +24,8 @@ export async function GET(request: NextRequest) {
     const movie = await db
       .select()
       .from(movies)
-      .where(eq(movies.id, parsedId))
-      .limit(1);
+      .where(eq(movies.id, parsedId));
+      //.limit(1);
     if (!movie.length) {
       console.error("Movie not found for ID:", parsedId);
       return NextResponse.json({ error: "Movie not found" }, { status: 404 });
@@ -46,7 +47,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    console.log("Received movie data:", JSON.stringify(body, null, 2));
+    //console.log("Received movie data:", JSON.stringify(body, null, 2));
 
     const requiredFields = [
       "name",
@@ -61,7 +62,7 @@ export async function POST(request: NextRequest) {
       "imdb",
       "mpaa",
       "showdate",
-      "showtime",
+      //"showtime",
     ];
     const missingFields = requiredFields.filter(
       (field) => body[field] === undefined || body[field] === null,
@@ -86,20 +87,40 @@ export async function POST(request: NextRequest) {
       trailerUrl: body.trailerUrl as string,
       imdb: Number(body.imdb) as number,
       mpaa: body.mpaa as string,
-      showdate: JSON.stringify(
-        body.showdate as { date: string; times: string[] }[],
-      ),
-      showtime: JSON.stringify(body.showtime as string[][]),
+      // showdate: JSON.stringify(
+      //   body.showdate as { date: string; times: string[] }[],
+      // ),
+      //showtime: JSON.stringify(body.showtime as string[][]),
       reviews: body.reviews?.length ? JSON.stringify(body.reviews) : null,
     };
 
-    console.log(
-      "Transformed movie data for DB:",
-      JSON.stringify(movieData, null, 2),
-    );
+    // console.log(
+    //   "Transformed movie data for DB:",
+    //   JSON.stringify(movieData, null, 2),
+    // );
 
-    const newMovie = await db.insert(movies).values(movieData).returning();
-    console.log("Inserted movie:", JSON.stringify(newMovie[0], null, 2));
+    const newMovie = await db
+      .insert(movies)
+      .values(movieData)
+      .returning()
+      .execute();
+
+    body.showdate.map((item: any) => {
+      console.log(item);
+      let date = item.date;
+      let movieId = newMovie[0]?.id;
+      let times = item.times;
+      times.map(async (time: string) => {
+        await db.insert(showtimes).values({
+          time: time,
+          date: date,
+          movieId: movieId,
+          pricesId: 6,
+        });
+      });
+    });
+
+    //console.log("Inserted movie:", JSON.stringify(newMovie[0], null, 2));
     return NextResponse.json(newMovie[0], { status: 201 });
   } catch (error) {
     console.error("Error creating movie:", error);
@@ -145,7 +166,6 @@ export async function PUT(request: NextRequest) {
       "imdb",
       "mpaa",
       "showdate",
-      "showtime",
     ];
     const missingFields = requiredFields.filter(
       (field) => body[field] === undefined || body[field] === null,
@@ -170,10 +190,9 @@ export async function PUT(request: NextRequest) {
       trailerUrl: body.trailerUrl as string,
       imdb: Number(body.imdb) as number,
       mpaa: body.mpaa as string,
-      showdate: JSON.stringify(
-        body.showdate as { date: string; times: string[] }[],
-      ),
-      showtime: JSON.stringify(body.showtime as string[][]),
+      // showdate: JSON.stringify(
+      //   body.showdate as { date: string; times: string[] }[],
+      // ),
       reviews: body.reviews?.length ? JSON.stringify(body.reviews) : null,
     };
 
@@ -193,7 +212,31 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: "Movie not found" }, { status: 404 });
     }
 
-    console.log("Updated movie:", JSON.stringify(updatedMovie[0], null, 2));
+    //how updateing showtimes works
+    //1. archive all existing showtimes for a movie. 
+    //2. try insert a showtime. if it doenst exist insert as normal
+    //if already exists, unarchive it
+    const currentShowtimes = await db.update(showtimes).set({archived: true}).where(eq(showtimes.movieId, parsedId));
+    let updateShowtimes:any[] = [];
+    body.showdate.map(async (item: any) => {
+      console.log(item);
+      let date = item.date;
+      let times = item.times;
+      await times.map(async (time: string) => {
+        let values = {date: date, time: time, movieId: parsedId, pricesId: 6 , archived: false};
+        console.log(values);
+        await db.insert(showtimes).values(values).onConflictDoUpdate({
+          target: [showtimes.movieId, showtimes.time, showtimes.date],
+          set: {
+            archived: false
+          }
+        })
+      });
+    });
+    console.log(updateShowtimes);
+   
+
+    //console.log("Updated movie:", JSON.stringify(updatedMovie[0], null, 2));
     return NextResponse.json(updatedMovie[0], { status: 200 });
   } catch (error) {
     console.error("Error updating movie:", error);

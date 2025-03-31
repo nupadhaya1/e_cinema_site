@@ -3,11 +3,13 @@ import { Button } from "../ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
 import { Movie } from "./selectMovieButton"
 import { useEffect, useState } from "react"
+import { Showtime} from "~/server/db/schema"
 
-export type Showtime = {
-  id: number
-  time: string
-}
+// export type Showtime = {
+//   id: number
+//   time: string
+// }
+
 
 
 type ShowtimeSelectionProps = {
