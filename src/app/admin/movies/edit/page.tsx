@@ -178,34 +178,38 @@ export default function EditMoviePage() {
         console.log("Setting cast to:", castArray);
         setCast(castArray);
 
-
-
         const showTimeResponse = await fetch(
           "/api/moviebooking/showtimes?movieId=" + movieId,
         );
-        const result:Showtime[] = await showTimeResponse.json();
-        console.log(result);
-        let a = result.map((showtime) => {
-         return {date: showtime.date, time: showtime.time};
-
-        });
+        const result: Showtime[] = await showTimeResponse.json();
+        //console.log(result);
         //shit was not working so you have the following magik
-        let b:any[] = [];
-        for(let i = 0; i < a.length; i++) {
-          for(let j = 0; j< b.length; j++) {
-            if(b[j].date == a[i]?.date) {
-              b[j].times = [...b[j].times, ...[a[i]?.time]];
+        let a = result.map((showtime) => {
+          return { date: showtime.date, time: showtime.time };
+        });
+        let b: any[] = [];
+        let c = true;
+        for (let i = 0; i < a.length; i++) {
+          for (let j = 0; j < b.length; j++) {
+            if (b[j].date == a[i]?.date) {
+              b[j].times.push(a[i]?.time); //= [...b[j].times, ...[]];
+              c = false;
               break;
             }
           }
-          b = [...b, ...[{date:a[i]?.date, times:[a[i]?.time]}]];
+          if (c) {
+            b = [...b, ...[{ date: a[i]?.date, times: [a[i]?.time] }]];
+          }
+          c = true;
         }
-        b = b.map((e) => { return {date: new Date(e.date), times: e.times}});
+        //console.log(b);
+
+        b = b.map((e) => {
+          return { date: new Date(e.date), times: e.times };
+        });
+        //console.log(b);
         setShowDates(b);
         //end magik
- 
-
-
       } catch (error) {
         console.error("Error fetching movie:", error);
         setError(
