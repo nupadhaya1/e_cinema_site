@@ -123,17 +123,47 @@ export async function GET() {
       return NextResponse.json({ users: [] });
     }
 
-    // Format users to match the required structure
-    const formattedUsers = allUsers.map((user) => ({
-      id: user.userID,
-      name: `${user.firstName} ${user.lastName}`,
-      phone: user.phoneNumber || "N/A",
-      email: "example@example.com", // No email field in schema, so placeholder
-      status: "active", // No status field in schema, assume "active"
-      admin: user.isAdmin ? "true" : "false",
-    }));
+    const formattedUsers = await Promise.all(
+      allUsers.map(async (user) => {
+        try {
+          const res = await fetch(
+            `https://api.clerk.com/v1/users/${user.userID}`,
+            {
+              headers: {
+                Authorization: `Bearer ${process.env.CLERK_SECRET_KEY}`,
+              },
+            },
+          );
 
-    return NextResponse.json({ users: formattedUsers });
+          if (!res.ok) {
+            console.error(`Failed to fetch Clerk user ${user.userID}`);
+            return null;
+          }
+
+          const clerkUser = await res.json();
+          const primaryEmail =
+            clerkUser.email_addresses?.[0]?.email_address || "N/A";
+
+          return {
+            id: user.userID,
+            name: `${user.firstName} ${user.lastName}`,
+            phone: user.phoneNumber || "N/A",
+            email: primaryEmail,
+            status: user.status || "active", // Add fallback if undefined
+            admin: user.isAdmin ? "true" : "false",
+          };
+        } catch (err) {
+          console.error("Error fetching Clerk user:", err);
+          return null;
+        }
+      }),
+    );
+
+    // Filter out any null entries from failed fetches
+    const usersWithEmails = formattedUsers.filter(Boolean);
+    return NextResponse.json({ users: usersWithEmails });
+
+    // return NextResponse.json({ users: formattedUsers });
   } catch (error) {
     console.error("Error fetching users:", error);
     return NextResponse.json(

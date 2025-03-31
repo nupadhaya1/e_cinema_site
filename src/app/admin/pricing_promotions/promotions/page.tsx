@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, Mail } from "lucide-react";
 import { useEffect } from "react";
 
 import { Button } from "~/components/ui/button";
@@ -264,6 +264,18 @@ export default function PromotionsManager() {
 
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() =>
+                                window.open(
+                                  `/admin/pricing_promotions/email_promotions?promo=${encodeURIComponent(promotion.name)}`,
+                                  "_blank",
+                                )
+                              }
+                            >
+                              <Mail className="h-4 w-4" />
+                            </Button>
                             <Button
                               variant="outline"
                               size="icon"

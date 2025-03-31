@@ -1,3 +1,4 @@
+"use client";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import {
   Breadcrumb,
@@ -43,6 +44,19 @@ export default function AdminDashboard() {
     <SidebarProvider>
       <AdminSidebar />
       <SidebarInset>
+        <button
+          onClick={async () => {
+            try {
+              const res = await fetch("/api/clerk-user"); // No auth needed on client
+              const data = await res.json();
+              console.log("User data:", data);
+            } catch (error) {
+              console.error("Error fetching user:", error);
+            }
+          }}
+        >
+          Test Request
+        </button>
         <header className="flex h-16 shrink-0 items-center border-b px-4">
           <div className="flex items-center gap-2">
             <SidebarTrigger className="-ml-1" />

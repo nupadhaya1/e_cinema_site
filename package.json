@@ -21,6 +21,7 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mdx}\" --cache"
   },
   "dependencies": {
+    "@clerk/clerk-js": "^5.58.1",
     "@clerk/elements": "^0.22.23",
     "@clerk/nextjs": "^6.11.3",
     "@fortawesome/fontawesome-svg-core": "^6.7.2",
@@ -38,6 +39,7 @@
     "@radix-ui/react-separator": "^1.1.2",
     "@radix-ui/react-slot": "^1.1.2",
     "@radix-ui/react-tooltip": "^1.1.8",
+    "@sendgrid/mail": "^8.1.4",
     "@t3-oss/env-nextjs": "^0.10.1",
     "@types/validator": "^13.12.2",
     "@uploadthing/react": "^7.3.0",
@@ -53,6 +55,7 @@
     "lucide-static": "^0.473.0",
     "next": "^15.0.1",
     "next-themes": "^0.4.4",
+    "nodemailer": "^6.10.0",
     "npm": "^10.9.2",
     "postgres": "^3.4.4",
     "react": "^18.3.1",

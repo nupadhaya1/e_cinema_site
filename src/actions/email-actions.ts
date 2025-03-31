@@ -1,35 +1,70 @@
 "use server";
 
-// This is a simulated function that would connect to your email service
-// In a real application, you would use a service like SendGrid, Mailgun, etc.
+import sgMail from "@sendgrid/mail";
+import { db } from "~/server/db";
+import { users } from "~/server/db/schema";
+import { auth } from "@clerk/nextjs/server";
+
+// Fetching Clerk data
+async function fetchClerkEmail(
+  userID: string,
+): Promise<{ email: string; name: string } | null> {
+  try {
+    const res = await fetch(`https://api.clerk.com/v1/users/${userID}`, {
+      headers: {
+        Authorization: `Bearer ${process.env.CLERK_SECRET_KEY}`,
+      },
+    });
+
+    if (!res.ok) {
+      console.error(`Failed to fetch Clerk user ${userID}`);
+      return null;
+    }
+
+    const data = await res.json();
+    const email = data.email_addresses?.[0]?.email_address;
+    const name = `${data.first_name ?? ""} ${data.last_name ?? ""}`.trim();
+
+    return email ? { email, name } : null;
+  } catch (err) {
+    console.error("Clerk fetch error:", err);
+    return null;
+  }
+}
+
+sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
+
 export async function sendPromotionalEmail(subject: string, message: string) {
-  // Simulate API delay
-  await new Promise((resolve) => setTimeout(resolve, 1500));
+  const fromEmail = process.env.FROM_EMAIL!;
+  let sent = 0;
 
-  // In a real application, you would:
-  // 1. Query your database for all users who have subscribed to promotions
-  // 2. Send emails to each user using your email service
-  // 3. Track success/failure and return statistics
+  // Get all users from DB
+  const allUsers = await db.query.users.findMany();
 
-  // Simulated response
-  const subscribedUsers = [
-    { id: 1, email: "user1@example.com", name: "User One" },
-    { id: 2, email: "user2@example.com", name: "User Two" },
-    { id: 3, email: "user3@example.com", name: "User Three" },
-    { id: 4, email: "user4@example.com", name: "User Four" },
-    { id: 5, email: "user5@example.com", name: "User Five" },
-  ];
+  // Fetch Clerk emails
+  const subscribedUsers = (
+    await Promise.all(allUsers.map((u) => fetchClerkEmail(u.userID)))
+  ).filter(Boolean) as { email: string; name: string }[];
 
-  console.log(
-    `Sending promotional email with subject: "${subject}" to ${subscribedUsers.length} users`,
-  );
-  console.log(`Email content: ${message}`);
+  for (const user of subscribedUsers) {
+    const msg = {
+      to: user.email,
+      from: fromEmail,
+      subject,
+      text: message,
+      html: `<p>${message}</p>`,
+    };
 
-  // Simulate some emails failing to send
-  const sentCount = Math.floor(Math.random() * subscribedUsers.length) + 1;
+    try {
+      await sgMail.send(msg);
+      sent++;
+    } catch (error) {
+      console.error(`Failed to send to ${user.email}:`, error);
+    }
+  }
 
   return {
     total: subscribedUsers.length,
-    sent: sentCount,
+    sent,
   };
 }
