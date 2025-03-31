@@ -64,6 +64,10 @@ const data = {
           title: "Promotions",
           url: "/admin/pricing_promotions/promotions",
         },
+        {
+          title: "Email Promotions",
+          url: "/admin/pricing_promotions/email_promotions",
+        },
       ],
     },
     {
@@ -75,10 +79,6 @@ const data = {
         {
           title: "All Users",
           url: "/admin/users",
-        },
-        {
-          title: "Email Promotions",
-          url: "/admin/users/email_promotions",
         },
       ],
     },

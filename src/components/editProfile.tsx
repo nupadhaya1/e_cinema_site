@@ -24,10 +24,14 @@ import { useToast } from "../hooks/use-toast";
 import { useEffect } from "react";
 import SelectCreditCard from "./booking/selectCreditCard";
 import { Card, CardContent } from "./ui/card";
-import isMobilePhone from "validator/lib/isMobilephone";
 
 const formSchema = z.object({
-  phoneNumber: z.string().refine(isMobilePhone),
+  phoneNumber: z
+    .string()
+    .regex(
+      /^(\+?\d{1,3}[-.\s]?)?(\(?\d{3}\)?[-.\s]?)?\d{3}[-.\s]?\d{4}$/,
+      "Invalid phone number format",
+    ),
   address: z.string().min(1, "Address is required"),
   promotions: z.boolean(),
 });
