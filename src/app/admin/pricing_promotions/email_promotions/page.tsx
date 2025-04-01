@@ -1,23 +1,11 @@
-"use client";
-
-import type React from "react";
-
-import { useState, useEffect, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Button } from "~/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "~/components/ui/card";
+import { Suspense } from "react";
+import EmailForm from "~/components/email-promotions/email-form";
 import {
   SidebarProvider,
   SidebarInset,
   SidebarTrigger,
 } from "~/components/ui/sidebar";
+import { AdminSidebar } from "~/components/admin/admin-sidebar";
 import { Separator } from "~/components/ui/separator";
 import {
   Breadcrumb,
@@ -27,169 +15,38 @@ import {
   BreadcrumbSeparator,
   BreadcrumbList,
 } from "~/components/ui/breadcrumb";
-import { AdminSidebar } from "~/components/admin/admin-sidebar";
-import { Textarea } from "~/components/ui/textarea";
-import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
-import { sendPromotionalEmail } from "~/actions/email-actions";
-import { AlertCircle, CheckCircle, Loader2, Mail } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 
-export default function EmailForm() {
-  const [subject, setSubject] = useState("");
-  const [message, setMessage] = useState("");
-  const [status, setStatus] = useState<
-    "idle" | "loading" | "success" | "error"
-  >("idle");
-  const [stats, setStats] = useState<{ total: number; sent: number } | null>(
-    null,
-  );
-
-  // Inside your EmailForm component:
-  const searchParams = useSearchParams();
-  const promoParam = searchParams.get("promo");
-
-  useEffect(() => {
-    if (promoParam) {
-      setMessage(
-        `Use promo code "${promoParam}" to get your exclusive discount!`,
-      );
-      setSubject(`Exclusive Offer: ${promoParam}`);
-    }
-  }, [promoParam]);
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-
-    if (!subject.trim() || !message.trim()) {
-      return;
-    }
-
-    setStatus("loading");
-
-    try {
-      const result = await sendPromotionalEmail(subject, message);
-      console.log("Email sent:", result);
-      setStats(result);
-      setStatus("success");
-
-      // Reset form after successful submission
-      setTimeout(() => {
-        setSubject("");
-        setMessage("");
-      }, 2000);
-    } catch (error) {
-      console.error("Failed to send emails:", error);
-      setStatus("error");
-    }
-  }
-
+export default function EmailPromotionsPage() {
   return (
-    <Suspense fallback={<div>Loading movie data...</div>}>
-      <SidebarProvider>
-        <AdminSidebar />
-        <SidebarInset>
-          <header className="flex h-16 shrink-0 items-center border-b px-4">
-            <div className="flex items-center gap-2">
-              <SidebarTrigger className="-ml-1" />
-              <Separator orientation="vertical" className="mx-2 h-4" />
-              <Breadcrumb>
-                <BreadcrumbList>
-                  <BreadcrumbItem>
-                    <BreadcrumbLink href="/admin">Admin</BreadcrumbLink>
-                  </BreadcrumbItem>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbLink href="/admin/users">Users</BreadcrumbLink>
-                  </BreadcrumbItem>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbPage>Email Promotions</BreadcrumbPage>
-                  </BreadcrumbItem>
-                </BreadcrumbList>
-              </Breadcrumb>
-            </div>
-            <div className="ml-auto"></div>
-          </header>
-          <Card className="w-full rounded-none border-none">
-            <CardHeader>
-              <CardTitle>Send Promotional Email</CardTitle>
-              <CardDescription>
-                Compose and send promotional emails to all subscribed users.
-              </CardDescription>
-            </CardHeader>
-            <form onSubmit={handleSubmit}>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="subject">Email Subject</Label>
-                  <Input
-                    id="subject"
-                    placeholder="Enter email subject line"
-                    value={subject}
-                    onChange={(e) => setSubject(e.target.value)}
-                    required
-                  />
-                </div>
+    <SidebarProvider>
+      <AdminSidebar />
+      <SidebarInset>
+        <header className="flex h-16 shrink-0 items-center border-b px-4">
+          <div className="flex items-center gap-2">
+            <SidebarTrigger className="-ml-1" />
+            <Separator orientation="vertical" className="mx-2 h-4" />
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem>
+                  <BreadcrumbLink href="/admin">Admin</BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbLink href="/admin/users">Users</BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbPage>Email Promotions</BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
+          </div>
+        </header>
 
-                <div className="space-y-2">
-                  <Label htmlFor="message">Email Message</Label>
-                  <Textarea
-                    id="message"
-                    placeholder="Compose your promotional message here..."
-                    className="min-h-[200px]"
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    required
-                  />
-                </div>
-
-                {status === "success" && (
-                  <Alert
-                    variant="default"
-                    className="border-green-200 bg-green-50"
-                  >
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <AlertTitle>Success!</AlertTitle>
-                    <AlertDescription>
-                      Your promotional email has been sent to {stats?.sent} out
-                      of {stats?.total} subscribed users.
-                    </AlertDescription>
-                  </Alert>
-                )}
-
-                {status === "error" && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>Error</AlertTitle>
-                    <AlertDescription>
-                      There was a problem sending your promotional email. Please
-                      try again.
-                    </AlertDescription>
-                  </Alert>
-                )}
-              </CardContent>
-              <CardFooter>
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={
-                    status === "loading" || !subject.trim() || !message.trim()
-                  }
-                >
-                  {status === "loading" ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Sending...
-                    </>
-                  ) : (
-                    "Send Promotional Email"
-                  )}
-                </Button>
-              </CardFooter>
-            </form>
-          </Card>
-        </SidebarInset>
-      </SidebarProvider>
-    </Suspense>
+        <Suspense fallback={<div className="p-4">Loading form...</div>}>
+          <EmailForm />
+        </Suspense>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
