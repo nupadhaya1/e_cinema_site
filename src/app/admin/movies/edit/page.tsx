@@ -1,6 +1,6 @@
 "use client";
 import type React from "react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { z } from "zod";
 import { Trash2 } from "lucide-react";
@@ -30,7 +30,10 @@ import {
   BreadcrumbSeparator,
 } from "~/components/ui/breadcrumb";
 import { Showtime } from "~/server/db/schema";
-import { convertShowDateToShowtimeList, ShowDates } from "~/components/admin/add_movie/showtimes";
+import {
+  convertShowDateToShowtimeList,
+  ShowDates,
+} from "~/components/admin/add_movie/showtimes";
 import AdminMovieDetailsForm from "~/components/admin/add_movie/moviedetails";
 import { formSchema } from "~/components/admin/add_movie/moviedetails";
 import { initShowtimeList } from "~/components/admin/add_movie/showtimes";
@@ -45,7 +48,6 @@ export default function EditMoviePage() {
   const [reset, setReset] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState<z.infer<typeof formSchema>>();
-
 
   useEffect(() => {
     if (!movieId) {
@@ -81,19 +83,18 @@ export default function EditMoviePage() {
       console.log("Fetched movie data:", JSON.stringify(movie, null, 2));
       console.log("Raw cast value:", movie.cast);
 
-     
       setForm({
-          name: movie.name,
-          url: movie.url,
-          category: movie.category,
-          genre: movie.genre || "",
-          director: movie.director,
-          producer: movie.producer,
-          synopsis: movie.synopsis,
-          trailerUrl: movie.trailerUrl,
-          imdb: movie.imdb,
-          mpaa: movie.mpaa,
-        });
+        name: movie.name,
+        url: movie.url,
+        category: movie.category,
+        genre: movie.genre || "",
+        director: movie.director,
+        producer: movie.producer,
+        synopsis: movie.synopsis,
+        trailerUrl: movie.trailerUrl,
+        imdb: movie.imdb,
+        mpaa: movie.mpaa,
+      });
 
       // Handle cast with explicit validation
       let castArray: string[];
@@ -234,57 +235,59 @@ export default function EditMoviePage() {
   }
 
   return (
-    <SidebarProvider>
-      <AdminSidebar />
-      <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center border-b px-4">
-          <div className="flex items-center gap-2">
-            <SidebarTrigger className="-ml-1" />
-            <Separator orientation="vertical" className="mx-2 h-4" />
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem>
-                  <BreadcrumbLink href="/admin">Admin</BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator />
-                <BreadcrumbItem>
-                  <BreadcrumbLink href="/admin/movies/add">
-                    Movies
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator />
-                <BreadcrumbItem>
-                  <BreadcrumbPage>Edit Movie</BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
-          </div>
-        </header>
-        <Card className="rounded-none border-none">
-          <CardHeader>
-            <CardTitle className="text-2xl">Edit Movie</CardTitle>
-            <CardDescription>Update details for this movie.</CardDescription>
-            <Button
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={loading}
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete Movie
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <AdminMovieDetailsForm
-              loading={loading}
-              castState={[cast, setCast]}
-              showDatesState={[showDates, setShowDates]}
-              onSubmit={onSubmit}
-              reset={reset}
-              formValues={form}
-            />
-          </CardContent>
-        </Card>
-      </SidebarInset>
-    </SidebarProvider>
+    <Suspense fallback={<div>Loading...</div>}>
+      <SidebarProvider>
+        <AdminSidebar />
+        <SidebarInset>
+          <header className="flex h-16 shrink-0 items-center border-b px-4">
+            <div className="flex items-center gap-2">
+              <SidebarTrigger className="-ml-1" />
+              <Separator orientation="vertical" className="mx-2 h-4" />
+              <Breadcrumb>
+                <BreadcrumbList>
+                  <BreadcrumbItem>
+                    <BreadcrumbLink href="/admin">Admin</BreadcrumbLink>
+                  </BreadcrumbItem>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem>
+                    <BreadcrumbLink href="/admin/movies/add">
+                      Movies
+                    </BreadcrumbLink>
+                  </BreadcrumbItem>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem>
+                    <BreadcrumbPage>Edit Movie</BreadcrumbPage>
+                  </BreadcrumbItem>
+                </BreadcrumbList>
+              </Breadcrumb>
+            </div>
+          </header>
+          <Card className="rounded-none border-none">
+            <CardHeader>
+              <CardTitle className="text-2xl">Edit Movie</CardTitle>
+              <CardDescription>Update details for this movie.</CardDescription>
+              <Button
+                variant="destructive"
+                onClick={handleDelete}
+                disabled={loading}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete Movie
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <AdminMovieDetailsForm
+                loading={loading}
+                castState={[cast, setCast]}
+                showDatesState={[showDates, setShowDates]}
+                onSubmit={onSubmit}
+                reset={reset}
+                formValues={form}
+              />
+            </CardContent>
+          </Card>
+        </SidebarInset>
+      </SidebarProvider>
+    </Suspense>
   );
 }
