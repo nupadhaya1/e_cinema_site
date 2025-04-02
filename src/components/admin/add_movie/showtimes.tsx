@@ -89,14 +89,14 @@ export default function AdminShowtimesComponent({
 }: AdminShowtimesComponentProps) {
   const [showDates, setShowDates] = showDatesState;
 
-  const [selectedDate, setSelectedDate] = useState<string | undefined>(undefined);
+  const [selectedDate, setSelectedDate] = useState<string | undefined>(new Date().toISOString());
   const [hour, setHour] = useState<string | undefined>(undefined);
   const [minute, setMinute] = useState<string | undefined>(undefined);
   const [ampm, setampm] = useState<string | undefined>(undefined);
   const [showroom, setShowRoom] = useState<number | undefined>(undefined);
 
   useEffect(() => {
-    setSelectedDate(undefined);
+    //setSelectedDate(undefined);
     setHour(undefined);
     setMinute(undefined);
     setampm(undefined);
@@ -193,7 +193,7 @@ export default function AdminShowtimesComponent({
                   if (date == undefined) {
                     return;
                   }
-                  setSelectedDate(formatDateString(date));
+                  setSelectedDate(date.toISOString());
                 }}
                 initialFocus
               />
@@ -255,7 +255,7 @@ export default function AdminShowtimesComponent({
             {!loading && (
               <Select
                 onValueChange={(val) => setShowRoom(Number(val))}
-                value={showroom + ""}
+                value={showroom? showroom + "": undefined}
               >
                 <FormControl>
                   <SelectTrigger>
@@ -309,7 +309,7 @@ export default function AdminShowtimesComponent({
                       variant="outline"
                       className="flex items-center gap-1"
                     >
-                      {showtime.time}
+                      {`${showtime.time}   🚪${showtime.showroom}`}
                       <button
                         type="button"
                         onClick={() => removeShowTime(dateIndex, timeIndex)}

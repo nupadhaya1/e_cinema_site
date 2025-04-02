@@ -12,13 +12,8 @@ import {
   PopoverTrigger,
 } from "~/components/ui/popover";
 import { Calendar } from "~/components/ui/calendar";
-import { FormLabel } from "~/components/ui/form";
 import { CalendarIcon } from "lucide-react";
-
-// export type Showtime = {
-//   id: number
-//   time: string
-// }
+import { formatDateString } from "../utils";
 
 type ShowtimeSelectionProps = {
   movie: Movie;
@@ -30,18 +25,20 @@ export function ShowtimeSelection({
   onSelectShowtime,
 }: ShowtimeSelectionProps) {
   const [showtimes, setShowtimes] = useState<Showtime[]>([]);
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const [selectedDate, setSelectedDate] = useState<string | undefined>(
+    new Date().toISOString(),
+  );
   useEffect(() => {
     const fetchData = async () => {
       const response = await fetch(
-        "/api/moviebooking/showtimes?movieId=" + movie.id,
+        `/api/moviebooking/showtimes?movieId=${movie.id}&date=${selectedDate}`,
       );
       const result = await response.json();
       setShowtimes(result);
     };
 
     fetchData();
-  }, []);
+  }, [selectedDate]);
 
   return (
     <Card>
@@ -49,8 +46,7 @@ export function ShowtimeSelection({
         <CardTitle>Select Showtime for {movie.title}</CardTitle>
       </CardHeader>
       <CardContent>
-        {/* <div>
-          <FormLabel>Date</FormLabel>
+        <div>
           <Popover>
             <PopoverTrigger asChild>
               <Button
@@ -68,13 +64,20 @@ export function ShowtimeSelection({
             <PopoverContent className="w-auto p-0">
               <Calendar
                 mode="single"
-                selected={selectedDate}
-                onSelect={setSelectedDate}
+                // selected={selectedDate}
+                // onSelect={setSelectedDate}
+                selected={selectedDate ? new Date(selectedDate) : undefined}
+                onSelect={(date) => {
+                  if (date == undefined) {
+                    return;
+                  }
+                  setSelectedDate(date.toISOString());
+                }}
                 initialFocus
               />
             </PopoverContent>
           </Popover>
-        </div> */}
+        </div>
       </CardContent>
       <CardContent className="grid grid-cols-2 gap-4 md:grid-cols-3">
         {showtimes.map((showtime: Showtime) => (
