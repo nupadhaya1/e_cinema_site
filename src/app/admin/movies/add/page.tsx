@@ -28,7 +28,7 @@ import {
   BreadcrumbSeparator,
 } from "~/components/ui/breadcrumb";
 import { ShowDates } from "~/components/admin/add_movie/showtimes";
-import AdminMovieDetails from "~/components/admin/add_movie/moviedetails";
+import { convertShowDateToShowtimeList } from "~/components/admin/add_movie/showtimes";
 import AdminMovieDetailsForm, {
   formSchema,
 } from "~/components/admin/add_movie/moviedetails";
@@ -55,7 +55,7 @@ export default function AddMovieForm() {
     const movieData = {
       ...values,
       cast: cast, // Array of strings
-      showdate: showDates.map((item) => item.times)[0],
+      showdate: convertShowDateToShowtimeList(showDates),
       reviews: [], // Optional field
     };
 

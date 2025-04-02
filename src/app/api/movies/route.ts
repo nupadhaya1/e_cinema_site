@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Movie not found" }, { status: 404 });
     }
 
-    console.log("Fetched movie:", JSON.stringify(movie[0], null, 2));
+    //console.log("Fetched movie:", JSON.stringify(movie[0], null, 2));
     return NextResponse.json(movie[0], { status: 200 });
   } catch (error) {
     console.error("Error fetching movie:", error);
@@ -106,6 +106,8 @@ export async function POST(request: NextRequest) {
         date: item.date,
         movieId: movieId,
         pricesId: 6,
+        archived: false,
+
       });
     });
 
@@ -125,7 +127,7 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    console.log("Received update data:", JSON.stringify(body, null, 2));
+   // console.log("Received update data:", JSON.stringify(body, null, 2));
 
     const id = body.id;
     if (!id) {
@@ -185,10 +187,10 @@ export async function PUT(request: NextRequest) {
       reviews: body.reviews?.length ? JSON.stringify(body.reviews) : null,
     };
 
-    console.log(
-      "Transformed movie data for DB update:",
-      JSON.stringify(movieData, null, 2),
-    );
+    // console.log(
+    //   "Transformed movie data for DB update:",
+    //   JSON.stringify(movieData, null, 2),
+    // );
 
     const updatedMovie = await db
       .update(movies)
@@ -209,11 +211,12 @@ export async function PUT(request: NextRequest) {
       .update(showtimes)
       .set({ archived: true })
       .where(eq(showtimes.movieId, parsedId));
-    console.log(body.showdate);
-    body.showdate.map(async (item: Showtime) => {
+console.log(body.showdate);
+      body.showdate.map(async (item: Showtime) => {
+      console.log(item);
       await db
         .insert(showtimes)
-        .values(item)
+        .values({...item, movieId: parsedId, pricesId: 6, archived: false})
         .onConflictDoUpdate({
           target: [showtimes.movieId, showtimes.time, showtimes.date],
           set: {

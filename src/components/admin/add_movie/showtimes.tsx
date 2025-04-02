@@ -26,6 +26,7 @@ import { Calendar } from "~/components/ui/calendar";
 import { Badge } from "~/components/ui/badge";
 import { Dispatch, SetStateAction } from "react";
 import { Showtime } from "~/server/db/schema";
+import {formatDateString} from "~/components/utils"
 
 export type ShowDates = { date: string; times: Showtime[] }[];
 
@@ -74,13 +75,21 @@ export function initShowtimeList(showtimes: Showtime[]) {
   return _showdates;
 }
 
+export function convertShowDateToShowtimeList(showdate: ShowDates) {
+  let a: Showtime[] = [];
+  showdate.forEach((e) => {
+    a.push(...e.times);
+  });
+  return a;
+}
+
 export default function AdminShowtimesComponent({
   showDatesState,
   loading,
 }: AdminShowtimesComponentProps) {
   const [showDates, setShowDates] = showDatesState;
 
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [selectedDate, setSelectedDate] = useState<string | undefined>(undefined);
   const [hour, setHour] = useState<string | undefined>(undefined);
   const [minute, setMinute] = useState<string | undefined>(undefined);
   const [ampm, setampm] = useState<string | undefined>(undefined);
@@ -106,9 +115,9 @@ export default function AdminShowtimesComponent({
     }
     let newShowdate: Showtime = {
       //make new showtime object
-      date: selectedDate
-        .toISOString()
-        .substring(0, selectedDate.toISOString().indexOf("T")),
+      date: selectedDate,
+        // .toISOString()
+        // .substring(0, selectedDate.toISOString().indexOf("T")),
       time: `${hour}:${minute} ${ampm}`,
       showroom: showroom,
     };
@@ -129,7 +138,12 @@ export default function AdminShowtimesComponent({
     } else {
       setShowDates([
         ...showDates,
-        { date: selectedDate.toISOString().substring(0, selectedDate.toISOString().indexOf("T")), times: [newShowdate] },
+        {
+          date: selectedDate,
+            // .toISOString()
+            // .substring(0, selectedDate.toISOString().indexOf("T")),
+          times: [newShowdate],
+        },
       ]);
     }
   }
@@ -172,8 +186,15 @@ export default function AdminShowtimesComponent({
             <PopoverContent className="w-auto p-0">
               <Calendar
                 mode="single"
-                selected={selectedDate}
-                onSelect={setSelectedDate}
+                // selected={selectedDate}
+                // onSelect={setSelectedDate}
+                selected={selectedDate ? new Date(selectedDate) : undefined}
+                onSelect={(date) => {
+                  if (date == undefined) {
+                    return;
+                  }
+                  setSelectedDate(formatDateString(date));
+                }}
                 initialFocus
               />
             </PopoverContent>

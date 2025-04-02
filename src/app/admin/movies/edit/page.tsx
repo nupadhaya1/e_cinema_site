@@ -30,11 +30,10 @@ import {
   BreadcrumbSeparator,
 } from "~/components/ui/breadcrumb";
 import { Showtime } from "~/server/db/schema";
-import { ShowDates } from "~/components/admin/add_movie/showtimes";
+import { convertShowDateToShowtimeList, ShowDates } from "~/components/admin/add_movie/showtimes";
 import AdminMovieDetailsForm from "~/components/admin/add_movie/moviedetails";
 import { formSchema } from "~/components/admin/add_movie/moviedetails";
 import { initShowtimeList } from "~/components/admin/add_movie/showtimes";
-import { useForm } from "react-hook-form";
 export default function EditMoviePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -161,7 +160,7 @@ export default function EditMoviePage() {
       cast, // Sent as array, API will stringify
 
       reviews: [],
-      showdate: showDates.map((item) => item.times)[0],
+      showdate: convertShowDateToShowtimeList(showDates),
     };
 
     try {

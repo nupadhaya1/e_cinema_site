@@ -16,6 +16,10 @@ import {
   jsonb,
 } from "drizzle-orm/pg-core";
 
+// Type inference for TypeScript
+export type Movie = typeof movies.$inferSelect; // For selecting movies
+export type NewMovie = typeof movies.$inferInsert; // For inserting movies
+export type Showtime = typeof showtimes.$inferInsert
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
  * database instance for multiple projects.
@@ -37,15 +41,9 @@ export const movies = createTable("movies", {
   trailerUrl: text("trailer_url").notNull(), // Trailer URL (matches API field)
   imdb: integer("imdb").notNull(), // IMDb rating (0-10)
   mpaa: text("mpaa").notNull(), // MPAA rating (e.g., "PG-13")
-  //showdate: jsonb("showdate").notNull(), // Array of { date: string, times: string[] }
-  //showtime: jsonb("showtime").notNull(), // Array of string[] (times per date)
   reviews: jsonb("reviews").default(null), // Optional array of reviews as JSON
 });
 
-// Type inference for TypeScript
-export type Movie = typeof movies.$inferSelect; // For selecting movies
-export type NewMovie = typeof movies.$inferInsert; // For inserting movies
-export type Showtime = typeof showtimes.$inferInsert
 
 export const users = createTable("users", {
   userID: varchar("userID", { length: 256 }).primaryKey(),
