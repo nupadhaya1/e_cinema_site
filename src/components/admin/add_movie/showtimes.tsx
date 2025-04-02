@@ -66,10 +66,10 @@ export function initShowtimeList(showtimes: Showtime[]) {
         (item) => item.time === newShowdate.time,
       );
       if (ifTimeExists != undefined && ifTimeExists < 0) {
-        _showdates[existingDateIndex]!.times.push(newShowdate);
+        _showdates[existingDateIndex]!.times.push({...newShowdate, date: new Date(newShowdate.date).toISOString()});
       }
     } else {
-      _showdates.push({ date: newShowdate.date, times: [newShowdate] });
+      _showdates.push({ date: newShowdate.date, times: [{...newShowdate, date: new Date(newShowdate.date).toISOString()}] });
     }
   });
   return _showdates;
@@ -78,7 +78,7 @@ export function initShowtimeList(showtimes: Showtime[]) {
 export function convertShowDateToShowtimeList(showdate: ShowDates) {
   let a: Showtime[] = [];
   showdate.forEach((e) => {
-    a.push(...e.times);
+    a.push(...e.times.map((times)=> ({...times, date: times.date.substring(0,times.date.indexOf("T"))})));
   });
   return a;
 }
@@ -100,6 +100,7 @@ export default function AdminShowtimesComponent({
     setHour(undefined);
     setMinute(undefined);
     setampm(undefined);
+    setShowRoom(undefined);
   }, [loading]);
 
   function addShowTime() {
@@ -116,8 +117,6 @@ export default function AdminShowtimesComponent({
     let newShowdate: Showtime = {
       //make new showtime object
       date: selectedDate,
-        // .toISOString()
-        // .substring(0, selectedDate.toISOString().indexOf("T")),
       time: `${hour}:${minute} ${ampm}`,
       showroom: showroom,
     };
@@ -140,8 +139,6 @@ export default function AdminShowtimesComponent({
         ...showDates,
         {
           date: selectedDate,
-            // .toISOString()
-            // .substring(0, selectedDate.toISOString().indexOf("T")),
           times: [newShowdate],
         },
       ]);

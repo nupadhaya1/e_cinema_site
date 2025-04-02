@@ -80,7 +80,7 @@ export function ShowtimeSelection({
         </div>
       </CardContent>
       <CardContent className="grid grid-cols-2 gap-4 md:grid-cols-3">
-        {showtimes.map((showtime: Showtime) => (
+        {showtimes.length > 0 ? showtimes.map((showtime: Showtime) => (
           <Button
             key={showtime.id}
             onClick={() => onSelectShowtime(showtime)}
@@ -88,7 +88,7 @@ export function ShowtimeSelection({
           >
             {showtime.time}
           </Button>
-        ))}
+        )) : "No showtime available for this date."}
       </CardContent>
     </Card>
   );
