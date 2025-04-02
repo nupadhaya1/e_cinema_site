@@ -5,11 +5,11 @@ import { ShowtimeSelection } from "./selectShowTimes";
 import { SeatSelection } from "./selectSeats";
 import BookingSummary, { Price } from "./BookingSummary";
 import { Button } from "../ui/button";
-import { Showtime } from "./selectShowTimes";
 import { Seat } from "./selectSeats";
 import SelectCreditCard from "./selectCreditCard";
 import ConfirmationPage from "./ConfirmationPage";
 import { useRouter } from "next/navigation";
+import { Showtime } from "~/server/db/schema";
 
 export type Movie = {
   id: number;
@@ -116,7 +116,7 @@ export default function SelectMovieButton({ selectedMovie }: SelectMovieProps) {
         <SeatSelection
           onConfirmSeats={handleConfirmSeats}
           selected_seats={selectedSeats}
-          showTimeId={selectedShowtime.id}
+          showTimeId={selectedShowtime.id!}
         />
       )}
       {step === 4 && selectedMovie && selectedShowtime && (

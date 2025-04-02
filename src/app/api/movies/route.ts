@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "~/server/db/index";
-import { movies, showtimes } from "~/server/db/schema";
+import { movies, Showtime, showtimes } from "~/server/db/schema";
 import { eq, and } from "drizzle-orm";
 import { date } from "drizzle-orm/mysql-core";
 
@@ -21,17 +21,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Invalid movie ID" }, { status: 400 });
     }
 
-    const movie = await db
-      .select()
-      .from(movies)
-      .where(eq(movies.id, parsedId));
-      //.limit(1);
+    const movie = await db.select().from(movies).where(eq(movies.id, parsedId));
+    //.limit(1);
     if (!movie.length) {
       console.error("Movie not found for ID:", parsedId);
       return NextResponse.json({ error: "Movie not found" }, { status: 404 });
     }
 
-    console.log("Fetched movie:", JSON.stringify(movie[0], null, 2));
+    //console.log("Fetched movie:", JSON.stringify(movie[0], null, 2));
     return NextResponse.json(movie[0], { status: 200 });
   } catch (error) {
     console.error("Error fetching movie:", error);
@@ -87,10 +84,6 @@ export async function POST(request: NextRequest) {
       trailerUrl: body.trailerUrl as string,
       imdb: Number(body.imdb) as number,
       mpaa: body.mpaa as string,
-      // showdate: JSON.stringify(
-      //   body.showdate as { date: string; times: string[] }[],
-      // ),
-      //showtime: JSON.stringify(body.showtime as string[][]),
       reviews: body.reviews?.length ? JSON.stringify(body.reviews) : null,
     };
 
@@ -104,19 +97,17 @@ export async function POST(request: NextRequest) {
       .values(movieData)
       .returning()
       .execute();
+    console.log(body.showdate);
 
-    body.showdate.map((item: any) => {
-      console.log(item);
-      let date = item.date;
+    body.showdate.map(async (item: Showtime) => {
       let movieId = newMovie[0]?.id;
-      let times = item.times;
-      times.map(async (time: string) => {
-        await db.insert(showtimes).values({
-          time: time,
-          date: date,
-          movieId: movieId,
-          pricesId: 6,
-        });
+      await db.insert(showtimes).values({
+        time: item.time,
+        date: item.date,
+        movieId: movieId,
+        pricesId: 6,
+        archived: false,
+
       });
     });
 
@@ -136,7 +127,7 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    console.log("Received update data:", JSON.stringify(body, null, 2));
+   // console.log("Received update data:", JSON.stringify(body, null, 2));
 
     const id = body.id;
     if (!id) {
@@ -196,10 +187,10 @@ export async function PUT(request: NextRequest) {
       reviews: body.reviews?.length ? JSON.stringify(body.reviews) : null,
     };
 
-    console.log(
-      "Transformed movie data for DB update:",
-      JSON.stringify(movieData, null, 2),
-    );
+    // console.log(
+    //   "Transformed movie data for DB update:",
+    //   JSON.stringify(movieData, null, 2),
+    // );
 
     const updatedMovie = await db
       .update(movies)
@@ -213,28 +204,26 @@ export async function PUT(request: NextRequest) {
     }
 
     //how updateing showtimes works
-    //1. archive all existing showtimes for a movie. 
+    //1. archive all existing showtimes for a movie.
     //2. try insert a showtime. if it doenst exist insert as normal
     //if already exists, unarchive it
-    const currentShowtimes = await db.update(showtimes).set({archived: true}).where(eq(showtimes.movieId, parsedId));
-    let updateShowtimes:any[] = [];
-    body.showdate.map(async (item: any) => {
+    const currentShowtimes = await db
+      .update(showtimes)
+      .set({ archived: true })
+      .where(eq(showtimes.movieId, parsedId));
+console.log(body.showdate);
+      body.showdate.map(async (item: Showtime) => {
       console.log(item);
-      let date = item.date;
-      let times = item.times;
-      await times.map(async (time: string) => {
-        let values = {date: date, time: time, movieId: parsedId, pricesId: 6 , archived: false};
-        console.log(values);
-        await db.insert(showtimes).values(values).onConflictDoUpdate({
+      await db
+        .insert(showtimes)
+        .values({...item, movieId: parsedId, pricesId: 6, archived: false})
+        .onConflictDoUpdate({
           target: [showtimes.movieId, showtimes.time, showtimes.date],
           set: {
-            archived: false
-          }
-        })
-      });
+            archived: false,
+          },
+        });
     });
-    console.log(updateShowtimes);
-   
 
     //console.log("Updated movie:", JSON.stringify(updatedMovie[0], null, 2));
     return NextResponse.json(updatedMovie[0], { status: 200 });
