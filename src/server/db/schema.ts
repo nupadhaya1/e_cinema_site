@@ -82,6 +82,7 @@ export const showtimes = createTable("showtimes", {
   time: text("time").notNull(),
   date: text("date").notNull(),
   archived: boolean("archived").default(false),
+  showroom: integer("showroom"),
 }, (table) => ({
   uniqueComposite: unique().on(table.time, table.movieId, table.date)
 }));

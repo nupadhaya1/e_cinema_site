@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { db } from "~/server/db";
 import { showtimes } from "~/server/db/schema";
-import { and, eq } from "drizzle-orm";
+import { and, eq, ilike } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 
 export async function GET(request: Request) {
   const user = await auth();
@@ -11,17 +12,27 @@ export async function GET(request: Request) {
   }
 
   const { searchParams } = new URL(request.url);
-  //console.log(request.url);
   const movieId = searchParams.get("movieId");
+  const date = searchParams.get("date");
+  let conditions = [
+    eq(showtimes.movieId, Number(movieId)),
+    eq(showtimes.archived, false),
+  ];
+  if(date != null ) {
+    conditions.push(ilike(showtimes.date, `%${date}%`));
+  }
 
   try {
-    // let showtimes = await db.query.showtimes.findMany({
-    //   where: (showtimes, { eq }) => eq(showtimes.movieId, Number(movieId) && eq(showtimes.archived, false)),
-    // });
-    let dbshowtimes = await db.select().from(showtimes).where(and(
-      eq(showtimes.movieId, Number(movieId)),
-      eq(showtimes.archived, false)
-    ))
+    let dbshowtimes = await db
+      .select()
+      .from(showtimes)
+      .where(
+        and(
+         ...conditions
+        ),
+      ).orderBy(
+      sql`${showtimes.time}::TIME`
+      );
     console.log(dbshowtimes);
 
     if (!dbshowtimes) {
@@ -30,10 +41,7 @@ export async function GET(request: Request) {
 
     //console.log(showtimes);
     return NextResponse.json(
-      // showtimes.map((showtime) => {
-      //   return { id: showtime.id, time: showtime.time };
-      // }),
-      dbshowtimes
+      dbshowtimes,
     );
   } catch (error) {
     console.error("Error fetching user:", error);
