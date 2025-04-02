@@ -170,6 +170,13 @@ export default function EditMoviePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(movieData),
       });
+      const responseBody = await response.json();
+      if (response.status == 418) {
+        alert(responseBody.error);
+        //await router.push("/admin/movies/edit?id=" + responseBody.movieId);
+        //router.refresh();
+        return;
+      }
 
       if (!response.ok) {
         const errorData = await response.json();

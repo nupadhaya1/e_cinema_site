@@ -32,8 +32,10 @@ import { convertShowDateToShowtimeList } from "~/components/admin/add_movie/show
 import AdminMovieDetailsForm, {
   formSchema,
 } from "~/components/admin/add_movie/moviedetails";
+import { useRouter } from "next/navigation";
 
 export default function AddMovieForm() {
+  const router = useRouter();
   const [cast, setCast] = useState<string[]>([]);
   const [showDates, setShowDates] = useState<ShowDates>([]);
   const [loading, setLoading] = useState(false);
@@ -69,12 +71,16 @@ export default function AddMovieForm() {
       });
 
       const responseBody = await response.json();
-      console.log(
-        "Server response:",
-        response.status,
-        JSON.stringify(responseBody, null, 2),
-      );
-
+      // console.log(
+      //   "Server response:",
+      //   response.status,
+      //   JSON.stringify(responseBody, null, 2),
+      // );
+      if (response.status == 418) {
+        alert(responseBody.error);
+        await router.push("/admin/movies/edit?id=" + responseBody.movieId);
+        return;
+      }
       if (!response.ok) {
         throw new Error(responseBody.error || "Unknown error");
       }

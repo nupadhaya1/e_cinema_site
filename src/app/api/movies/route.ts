@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "~/server/db/index";
 import { movies, Showtime, showtimes } from "~/server/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, ne, not } from "drizzle-orm";
 import { date } from "drizzle-orm/mysql-core";
+import { Item } from "@radix-ui/react-select";
 
 export async function GET(request: NextRequest) {
   try {
@@ -97,8 +98,47 @@ export async function POST(request: NextRequest) {
       .values(movieData)
       .returning()
       .execute();
-    console.log(body.showdate);
+    //console.log(body.showdate);
 
+    let insertConflicts: any[] = [];
+    //console.log(insertConflicts);
+
+    await Promise.all(
+      body.showdate.map(async (showtime: Showtime) => {
+        //console.log(showtime);
+        let conflicts = await db
+          .select()
+          .from(showtimes)
+          .where(
+            and(
+              //ne(showtimes.movieId, showtime.movieId!),
+              eq(showtimes.date, showtime.date),
+              eq(showtimes.time, showtime.time),
+              eq(showtimes.showroom, showtime.showroom!),
+              eq(showtimes.archived, false),
+            ),
+          );
+    
+        if (conflicts.length > 0) {
+        //insertConflicts = await [...insertConflicts, ...conflicts];
+        insertConflicts.push(showtime);
+        //console.log(insertConflicts);
+        }
+      }),
+    );
+    //console.log(insertConflicts.length);
+
+    if (insertConflicts.length > 0) {
+      //console.log("hello");
+
+      return NextResponse.json(
+        {
+          error: `Movie created sucessfully\n !!!!!HOWEVER!!!!\nFollowing Showtimes have conflicts with existing entries: \n${JSON.stringify(insertConflicts)}\n please edit on the follwing page.`,
+          movieId: newMovie[0]?.id,
+        },
+        { status: 418 },
+      );
+    }
     body.showdate.map(async (item: Showtime) => {
       let movieId = newMovie[0]?.id;
       await db.insert(showtimes).values({
@@ -107,7 +147,6 @@ export async function POST(request: NextRequest) {
         movieId: movieId,
         pricesId: 6,
         archived: false,
-
       });
     });
 
@@ -127,7 +166,7 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-   // console.log("Received update data:", JSON.stringify(body, null, 2));
+    // console.log("Received update data:", JSON.stringify(body, null, 2));
 
     const id = body.id;
     if (!id) {
@@ -202,7 +241,45 @@ export async function PUT(request: NextRequest) {
       console.error("Movie not found for ID:", parsedId);
       return NextResponse.json({ error: "Movie not found" }, { status: 404 });
     }
+    let insertConflicts: any[] = [];
+    //console.log(insertConflicts);
 
+    await Promise.all(
+      body.showdate.map(async (showtime: Showtime) => {
+        //console.log(showtime);
+        let conflicts = await db
+          .select()
+          .from(showtimes)
+          .where(
+            and(
+              not(eq(showtimes.movieId, updatedMovie[0]!.id)),
+              eq(showtimes.date, showtime.date),
+              eq(showtimes.time, showtime.time),
+              eq(showtimes.showroom, showtime.showroom!),
+              eq(showtimes.archived, false),
+            ),
+          );
+    //console.log(conflicts);
+        if (conflicts.length > 0) {
+        //insertConflicts = await [...insertConflicts, ...conflicts];
+        insertConflicts.push(showtime);
+        //console.log(insertConflicts);
+        }
+      }),
+    );
+    //console.log(insertConflicts.length);
+
+    if (insertConflicts.length > 0) {
+      //console.log("hello");
+
+      return NextResponse.json(
+        {
+          error: `SHOWTIME NOT UPDATED\n !!!!!!!!!\nFollowing Showtimes have conflicts with existing entries: \n${JSON.stringify(insertConflicts)}\n `,
+          movieId: updatedMovie[0]?.id,
+        },
+        { status: 418 },
+      );
+    }
     //how updateing showtimes works
     //1. archive all existing showtimes for a movie.
     //2. try insert a showtime. if it doenst exist insert as normal
@@ -211,15 +288,16 @@ export async function PUT(request: NextRequest) {
       .update(showtimes)
       .set({ archived: true })
       .where(eq(showtimes.movieId, parsedId));
-console.log(body.showdate);
-      body.showdate.map(async (item: Showtime) => {
+    console.log(body.showdate);
+    body.showdate.map(async (item: Showtime) => {
       console.log(item);
       await db
         .insert(showtimes)
-        .values({...item, movieId: parsedId, pricesId: 6, archived: false})
+        .values({ ...item, movieId: parsedId, pricesId: 6, archived: false })
         .onConflictDoUpdate({
           target: [showtimes.movieId, showtimes.time, showtimes.date],
           set: {
+            showroom: item.showroom,
             archived: false,
           },
         });
