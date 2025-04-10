@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
       trailerUrl: body.trailerUrl as string,
       imdb: Number(body.imdb) as number,
       mpaa: body.mpaa as string,
-      reviews: body.reviews?.length ? JSON.stringify(body.reviews) : null,
+      reviews: JSON.stringify(body.reviews as string[]),
     };
 
     // console.log(
@@ -147,6 +147,7 @@ export async function POST(request: NextRequest) {
         movieId: movieId,
         pricesId: 6,
         archived: false,
+        showroom: item.showroom,
       });
     });
 
@@ -223,7 +224,7 @@ export async function PUT(request: NextRequest) {
       // showdate: JSON.stringify(
       //   body.showdate as { date: string; times: string[] }[],
       // ),
-      reviews: body.reviews?.length ? JSON.stringify(body.reviews) : null,
+      reviews: JSON.stringify(body.reviews as string[]),
     };
 
     // console.log(

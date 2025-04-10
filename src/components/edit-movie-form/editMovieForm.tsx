@@ -41,6 +41,7 @@ export default function EditMoviePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const movieId = searchParams.get("id");
+  const [reviews, setReviews] = useState<string[]>([]);
 
   const [cast, setCast] = useState<string[]>([]);
   const [showDates, setShowDates] = useState<ShowDates>([]);
@@ -120,6 +121,29 @@ export default function EditMoviePage() {
       }
       console.log("Setting cast to:", castArray);
       setCast(castArray);
+      let reviewsArray: string[];
+      if (Array.isArray(movie.reviews)) {
+        reviewsArray = movie.reviews;
+      } else if (typeof movie.reviews === "string") {
+        try {
+          reviewsArray = JSON.parse(movie.reviews);
+          if (!Array.isArray(reviewsArray)) {
+            console.warn("Parsed cast is not an array:", reviewsArray);
+            reviewsArray = [];
+          }
+        } catch (e) {
+          console.error("Failed to parse cast string:", movie.reviews, e);
+          reviewsArray = [];
+        }
+      } else {
+        console.warn(
+          "Cast is neither an array nor a valid string:",
+          movie.reviews,
+        );
+        reviewsArray = [];
+      }
+      console.log("Setting cast to:", reviewsArray);
+      setReviews(reviewsArray);
     } catch (error) {
       console.error("Error fetching movie:", error);
       setError(
@@ -153,6 +177,11 @@ export default function EditMoviePage() {
       alert("Please add at least one show date and time.");
       return;
     }
+    if (reviews.length === 0) {
+      alert("Please add at least one review.");
+      setLoading(false);
+      return;
+    }
 
     const movieData = {
       ...values,
@@ -160,7 +189,7 @@ export default function EditMoviePage() {
 
       cast, // Sent as array, API will stringify
 
-      reviews: [],
+      reviews: reviews,
       showdate: convertShowDateToShowtimeList(showDates),
     };
 
@@ -285,6 +314,8 @@ export default function EditMoviePage() {
             <AdminMovieDetailsForm
               loading={loading}
               castState={[cast, setCast]}
+              reviewState={[reviews, setReviews]}
+
               showDatesState={[showDates, setShowDates]}
               onSubmit={onSubmit}
               reset={reset}
