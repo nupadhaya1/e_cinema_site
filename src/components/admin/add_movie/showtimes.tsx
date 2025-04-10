@@ -72,7 +72,7 @@ export function initShowtimeList(showtimes: Showtime[]) {
       _showdates.push({ date: newShowdate.date, times: [newShowdate] });
     }
   });
-  return _showdates;
+  return _showdates.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());;
 }
 
 export function convertShowDateToShowtimeList(showdate: ShowDates) {
