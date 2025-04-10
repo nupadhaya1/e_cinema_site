@@ -26,7 +26,7 @@ import { Calendar } from "~/components/ui/calendar";
 import { Badge } from "~/components/ui/badge";
 import { Dispatch, SetStateAction } from "react";
 import { Showtime } from "~/server/db/schema";
-import {formatDateString} from "~/components/utils"
+import {formatDateString, prettyDateString} from "~/components/utils"
 
 export type ShowDates = { date: string; times: Showtime[] }[];
 
@@ -66,10 +66,10 @@ export function initShowtimeList(showtimes: Showtime[]) {
         (item) => item.time === newShowdate.time,
       );
       if (ifTimeExists != undefined && ifTimeExists < 0) {
-        _showdates[existingDateIndex]!.times.push({...newShowdate, date: new Date(newShowdate.date).toISOString()});
+        _showdates[existingDateIndex]!.times.push(newShowdate);
       }
     } else {
-      _showdates.push({ date: newShowdate.date, times: [{...newShowdate, date: new Date(newShowdate.date).toISOString()}] });
+      _showdates.push({ date: newShowdate.date, times: [newShowdate] });
     }
   });
   return _showdates;
@@ -78,7 +78,8 @@ export function initShowtimeList(showtimes: Showtime[]) {
 export function convertShowDateToShowtimeList(showdate: ShowDates) {
   let a: Showtime[] = [];
   showdate.forEach((e) => {
-    a.push(...e.times.map((times)=> ({...times, date: times.date.substring(0,times.date.indexOf("T"))})));
+    a.push(...e.times);
+
   });
   return a;
 }
@@ -89,7 +90,7 @@ export default function AdminShowtimesComponent({
 }: AdminShowtimesComponentProps) {
   const [showDates, setShowDates] = showDatesState;
 
-  const [selectedDate, setSelectedDate] = useState<string | undefined>(new Date().toISOString());
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [hour, setHour] = useState<string | undefined>(undefined);
   const [minute, setMinute] = useState<string | undefined>(undefined);
   const [ampm, setampm] = useState<string | undefined>(undefined);
@@ -116,7 +117,7 @@ export default function AdminShowtimesComponent({
     }
     let newShowdate: Showtime = {
       //make new showtime object
-      date: selectedDate,
+      date: formatDateString(selectedDate),
       time: `${hour}:${minute} ${ampm}`,
       showroom: showroom,
     };
@@ -138,7 +139,7 @@ export default function AdminShowtimesComponent({
       setShowDates([
         ...showDates,
         {
-          date: selectedDate,
+          date: formatDateString(selectedDate),
           times: [newShowdate],
         },
       ]);
@@ -190,7 +191,7 @@ export default function AdminShowtimesComponent({
                   if (date == undefined) {
                     return;
                   }
-                  setSelectedDate(date.toISOString());
+                  setSelectedDate(date);
                 }}
                 initialFocus
               />
@@ -287,7 +288,7 @@ export default function AdminShowtimesComponent({
               <div key={dateIndex} className="border-b pb-2 last:border-0">
                 <div className="flex items-center justify-between">
                   <h5 className="font-medium">
-                    {format(showDate.date, "PPP")}
+                    {prettyDateString(showDate.date)} 
                   </h5>
                   <Button
                     type="button"
