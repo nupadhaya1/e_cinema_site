@@ -29,11 +29,13 @@ import { Separator } from "~/components/ui/separator";
 
 import AdminShowtimesComponent from "~/components/admin/add_movie/showtimes";
 import AdminAddCastComponent from "~/components/admin/add_movie/cast";
+import AdminAddReviewComponent from "./reviews";
 import { ShowDates } from "~/components/admin/add_movie/showtimes";
 import { stateTuple } from "~/components/utils";
 type moviedetailsProps = {
   onSubmit: SubmitHandler<z.infer<typeof formSchema>>;
   castState: stateTuple<string[]>;
+  reviewState: stateTuple<string[]>;
   showDatesState: stateTuple<ShowDates>;
   loading: boolean;
   reset: boolean;
@@ -59,26 +61,27 @@ export const formSchema = z.object({
 export default function AdminMovieDetailsForm({
   onSubmit,
   castState,
+  reviewState,
   showDatesState,
   loading,
   reset,
   formValues,
 }: moviedetailsProps) {
-    let defaultValues = {
-        name: "",
-        url: "",
-        category: "",
-        genre: "",
-        director: "",
-        producer: "",
-        synopsis: "",
-        trailerUrl: "",
-        imdb: 0,
-        mpaa: "",
-      }
+  let defaultValues = {
+    name: "",
+    url: "",
+    category: "",
+    genre: "",
+    director: "",
+    producer: "",
+    synopsis: "",
+    trailerUrl: "",
+    imdb: 0,
+    mpaa: "",
+  };
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: formValues || defaultValues
+    defaultValues: formValues || defaultValues,
   });
   useEffect(() => {
     form.reset();
@@ -86,7 +89,7 @@ export default function AdminMovieDetailsForm({
   }, [reset]);
   useEffect(() => {
     if (formValues != undefined) {
-      form.reset({...formValues});
+      form.reset({ ...formValues });
       form.setValue("mpaa", "G");
       console.log(formValues);
       form.watch();
@@ -128,10 +131,7 @@ export default function AdminMovieDetailsForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Category</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  value={field.value}
-                >
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       {/* <SelectValue placeholder="Select category" /> */}
@@ -155,13 +155,10 @@ export default function AdminMovieDetailsForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Genre</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  value={field.value}
-                >
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select genre"/>
+                      <SelectValue placeholder="Select genre" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -298,6 +295,7 @@ export default function AdminMovieDetailsForm({
             )}
           />
         </div>
+        <AdminAddReviewComponent reviewState={reviewState} loading={loading} />
 
         <AdminShowtimesComponent
           showDatesState={showDatesState}
