@@ -37,6 +37,8 @@ import { useRouter } from "next/navigation";
 export default function AddMovieForm() {
   const router = useRouter();
   const [cast, setCast] = useState<string[]>([]);
+  const [reviews, setReviews] = useState<string[]>([]);
+
   const [showDates, setShowDates] = useState<ShowDates>([]);
   const [loading, setLoading] = useState(false);
   const [reset, setReset] = useState(false);
@@ -53,12 +55,17 @@ export default function AddMovieForm() {
       setLoading(false);
       return;
     }
+    if (reviews.length === 0) {
+      alert("Please add at least one review.");
+      setLoading(false);
+      return;
+    }
 
     const movieData = {
       ...values,
       cast: cast, // Array of strings
       showdate: convertShowDateToShowtimeList(showDates),
-      reviews: [], // Optional field
+      reviews: reviews
     };
 
     console.log("Submitting movie data:", JSON.stringify(movieData, null, 2));
@@ -135,6 +142,7 @@ export default function AddMovieForm() {
             <AdminMovieDetailsForm
               loading={loading}
               castState={[cast, setCast]}
+              reviewState={[reviews, setReviews]}
               showDatesState={[showDates, setShowDates]}
               onSubmit={onSubmit}
               reset={reset}

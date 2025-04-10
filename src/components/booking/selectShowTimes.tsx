@@ -25,13 +25,11 @@ export function ShowtimeSelection({
   onSelectShowtime,
 }: ShowtimeSelectionProps) {
   const [showtimes, setShowtimes] = useState<Showtime[]>([]);
-  const [selectedDate, setSelectedDate] = useState<string | undefined>(
-    new Date().toISOString(),
-  );
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   useEffect(() => {
     const fetchData = async () => {
       const response = await fetch(
-        `/api/moviebooking/showtimes?movieId=${movie.id}&date=${selectedDate}`,
+        `/api/moviebooking/showtimes?movieId=${movie.id}&date=${formatDateString(selectedDate)}`,
       );
       const result = await response.json();
       setShowtimes(result);
@@ -71,7 +69,7 @@ export function ShowtimeSelection({
                   if (date == undefined) {
                     return;
                   }
-                  setSelectedDate(date.toISOString());
+                  setSelectedDate(date);
                 }}
                 initialFocus
               />
@@ -88,7 +86,7 @@ export function ShowtimeSelection({
           >
             {showtime.time}
           </Button>
-        )) : "No showtime available for this date." }
+        )) : "No showtime available for this date."}
       </CardContent>
     </Card>
   );
