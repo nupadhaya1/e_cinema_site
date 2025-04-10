@@ -88,7 +88,7 @@ export function ShowtimeSelection({
           >
             {showtime.time}
           </Button>
-        )) : "No showtime available for this date."}
+        )) : "No showtime available for this date." }
       </CardContent>
     </Card>
   );
