@@ -68,3 +68,20 @@ export async function sendPromotionalEmail(subject: string, message: string) {
     sent,
   };
 }
+
+
+export async function sendConfirmationEmail(userId: string, subject: string, body: string) {
+  const fromEmail = process.env.FROM_EMAIL!;
+  let email: string | undefined = (await fetchClerkEmail(userId))?.email;
+  if ( ! email) {
+    console.error("no email found for user id: " + userId);
+    throw new Error("no email found");
+  }
+  const msg = {
+    to: email,
+    from: fromEmail,
+    subject,
+    text: body,
+    html: `<p>${body}</p>`,
+  };
+}

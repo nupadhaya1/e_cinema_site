@@ -1,9 +1,8 @@
 import { db } from "~/server/db";
-import { creditCards } from "~/server/db/schema";
-import { eq } from "drizzle-orm";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { seats as seatSchema, confirmed_bookings } from "~/server/db/schema";
+import { sendConfirmationEmail } from "~/actions/email-actions";
 
 export async function POST(request: Request) {
   const user = await auth();
@@ -34,6 +33,13 @@ export async function POST(request: Request) {
         booking_id: bookingId[0]?.bookingId
       });
     });
+    try {
+      const subject = "Thank You for Booking With Us!";
+      const body = `Confirmation Number: ${bookingId[0]?.bookingId}\nSeats: ${seats.map((seat: any)=> seat.row + seat.number)}\nTotal: ${total}`;
+      sendConfirmationEmail(user.userId, subject, body);
+    } catch(error) {
+      console.error("email send fail: " + error);
+    }
 
     //console.log(bookingId);
     return NextResponse.json(bookingId);
