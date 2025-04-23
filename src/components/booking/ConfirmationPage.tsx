@@ -2,8 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { useRouter } from "next/navigation";
-import { Movie } from "./selectMovieButton";
-import { Showtime } from "./selectShowTimes";
+import { Showtime, Movie } from "~/server/db/schema";
 import { Seat } from "./selectSeats";
 import { Price } from "./BookingSummary";
 
@@ -39,7 +38,7 @@ export default function ConfirmationPage({movie, showtime, seats, confirmationNu
             <strong>{"Confirmation# "+ confirmationNumber}</strong> 
           </p>
           <p>
-            <strong>Movie:</strong> {movie.title}
+            <strong>Movie:</strong> {movie.name}
           </p>
           <p>
             <strong>Showtime:</strong> {showtime!.time}

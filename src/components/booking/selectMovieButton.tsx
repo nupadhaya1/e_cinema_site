@@ -9,13 +9,8 @@ import { Seat } from "./selectSeats";
 import SelectCreditCard from "./selectCreditCard";
 import ConfirmationPage from "./ConfirmationPage";
 import { useRouter } from "next/navigation";
-import { Showtime } from "~/server/db/schema";
+import { Showtime, Movie } from "~/server/db/schema";
 
-export type Movie = {
-  id: number;
-  title: string;
-  image: string;
-};
 
 type SelectMovieProps = {
   selectedMovie: Movie;
@@ -32,6 +27,7 @@ export default function SelectMovieButton({ selectedMovie }: SelectMovieProps) {
   // const [promotionCode, setPromotionCode] = useState<String>("");
   const [confirmationNumber, setConfirmationNumber] = useState<Number>(-1);
   const [prices, setPrices] = useState<Price | null>();
+  const [total, setTotal] = useState<Number>(0.0);
 
   const router = useRouter();
 
@@ -48,6 +44,7 @@ export default function SelectMovieButton({ selectedMovie }: SelectMovieProps) {
           showtime: selectedShowtime,
           seats: selectedSeats,
           card: selectedCard,
+          total: total
         }),
       });
       let jason = await response.json();
@@ -129,6 +126,8 @@ export default function SelectMovieButton({ selectedMovie }: SelectMovieProps) {
           onContinue={() => setStep(5)}
           setPrices={setPrices}
           prices={prices}
+          total={total}
+          setTotal={setTotal}
         />
       )}
       {step === 5 && (

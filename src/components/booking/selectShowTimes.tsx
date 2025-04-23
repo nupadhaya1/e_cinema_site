@@ -1,9 +1,8 @@
 import { set } from "date-fns";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import { Movie } from "./selectMovieButton";
 import { useEffect, useState } from "react";
-import { Showtime } from "~/server/db/schema";
+import { Showtime, Movie } from "~/server/db/schema";
 import { format } from "date-fns";
 
 import {
@@ -41,7 +40,7 @@ export function ShowtimeSelection({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Select Showtime for {movie.title}</CardTitle>
+        <CardTitle>Select Showtime for {movie.name}</CardTitle>
       </CardHeader>
       <CardContent>
         <div>
