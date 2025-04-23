@@ -42,11 +42,6 @@ const formSchema = z.object({
   promotionCode: z.string().optional(),
 });
 
-//TODO:
-export function getPrices(movie: Movie) {
-  return { adult: 20.0, child: 15.0, senior: 10.0, taxPercentage: 0.1 };
-}
-
 export default function BookingSummary({
   movie,
   showtime,
@@ -57,7 +52,7 @@ export default function BookingSummary({
   setPrices,
   prices,
   total,
-  setTotal
+  setTotal,
 }: BookingSummaryProps) {
   const [isLoading, setIsLoading] = useState(false);
   let taxPercentage = 0.1;
@@ -76,11 +71,7 @@ export default function BookingSummary({
 
   const [subtotal, setSubTotal] = useState(0.0);
 
-  //let prices = getPrices(movie);
-  // if(prices == null || prices == undefined) {
-  //   setPrices(getPrices(movie));
-  // }
-  useEffect(() => {
+  function calcPrices() {
     if (prices == null) {
       return;
     }
@@ -88,9 +79,13 @@ export default function BookingSummary({
     for (let i = 0; i < seats.length; i++) {
       _subtotal += prices![seats[i]!.ageCategory as keyof Price];
     }
+    let total = _subtotal * (1 + taxPercentage);
     setSubTotal(_subtotal);
-    let total = subtotal * (1 + taxPercentage);
     setTotal(total - Number(discount));
+  }
+
+  useEffect(() => {
+    calcPrices();
   }, [prices]);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -132,6 +127,7 @@ export default function BookingSummary({
           <CardTitle>Booking Summary</CardTitle>
         </CardHeader>
         <CardContent>
+  
           <div className="space-y-2">
             <p>
               <strong>Movie:</strong> {movie.name}
@@ -189,7 +185,7 @@ export default function BookingSummary({
                   {isLoading ? "Checking..." : "Apply Promotion Code"}
                 </Button>
 
-                <Button onClick={onContinue} className="">
+                <Button onClick={() => {onContinue();calcPrices()}} className="">
                   Continue
                 </Button>
               </div>
