@@ -11,23 +11,30 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const jason = await request.json();
-  const { movie, showtime, seats, card } = jason;
+  const { movie, showtime, seats, card, total } = jason;
 
   try {
-    seats.map(async (seat: any) => {
-      await db.insert(seatSchema).values({
-        movieId: Number(movie.id),
-        showtimeId: Number(showtime.id),
-        seat: seat.row + String(seat.number),
-        userId: user.userId + "",
-      });
-    });
+
     let bookingId = await db.insert(confirmed_bookings).values({
       movieId: Number(movie.id),
       showtimeId: Number(showtime.id),
       userId: String(user.userId),
       cardId: String(card),
+      total: total
     }).returning({bookingId: confirmed_bookings.id}).execute();
+
+    seats.map(async (seat: any) => {
+      //console.log(seat);
+      await db.insert(seatSchema).values({
+        movieId: Number(movie.id),
+        showtimeId: Number(showtime.id),
+        seat: seat.row + String(seat.number),
+        userId: user.userId + "",
+        ageCategory: seat.ageCategory,
+        booking_id: bookingId[0]?.bookingId
+      });
+    });
+
     //console.log(bookingId);
     return NextResponse.json(bookingId);
   } catch (error) {

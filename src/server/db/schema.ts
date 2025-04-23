@@ -97,6 +97,10 @@ export const seats = createTable("seats", {
     onDelete: "cascade",
   }),
   seat: text("seat").notNull(),
+  ageCategory: text("ageCategory"),
+  booking_id: uuid("booking_id").references(() => confirmed_bookings.id, {
+    onDelete: "cascade"
+  })
 });
 
 export const prices = createTable("prices", {
@@ -126,4 +130,6 @@ export const confirmed_bookings = createTable("confirmed_bookings", {
   cardId: uuid("cardId").references(() => creditCards.id, {
     onDelete: "cascade",
   }),
+  total: doublePrecision("total"),
+
 });

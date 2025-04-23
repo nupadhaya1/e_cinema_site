@@ -12,7 +12,7 @@ import {
 } from "@clerk/nextjs";
 
 import { Button } from "~/components/ui/button";
-import { UserCog, UserCircle2, Settings, HomeIcon } from "lucide-react";
+import { UserCog, UserCircle2, Settings, HomeIcon, History } from "lucide-react";
 import EditProfileForm from "~/components/editProfile";
 
 function AdminStatus() {
@@ -47,6 +47,11 @@ function AdminStatus() {
           </Link>
         </Button>
       )}
+     <Button asChild className="">
+        <Link href="/orders">
+        <History className="h-4 w-4"/>
+        </Link>
+      </Button>
       <Button asChild className="">
         <Link href="/">
           <HomeIcon className="h-4 w-4" />

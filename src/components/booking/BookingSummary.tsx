@@ -2,8 +2,7 @@
 
 import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import { Movie } from "./selectMovieButton";
-import { Showtime } from "./selectShowTimes";
+import { Showtime, Movie } from "~/server/db/schema";
 import { Seat } from "./selectSeats";
 import {
   Form,
@@ -29,8 +28,8 @@ type BookingSummaryProps = {
   onContinue: () => void;
   setPrices: (p: Price) => void;
   prices: Price | null | undefined;
-  // promotionCode: String;
-  // setPromotionCode: (e: String) => void;
+  total: Number;
+  setTotal: (e: Number) => void;
 };
 
 export type Price = {
@@ -57,8 +56,8 @@ export default function BookingSummary({
   onContinue,
   setPrices,
   prices,
-  // promotionCode,
-  // setPromotionCode
+  total,
+  setTotal
 }: BookingSummaryProps) {
   const [isLoading, setIsLoading] = useState(false);
   let taxPercentage = 0.1;
@@ -76,7 +75,6 @@ export default function BookingSummary({
   }, []);
 
   const [subtotal, setSubTotal] = useState(0.0);
-  const [total, setTotal] = useState(0.0);
 
   //let prices = getPrices(movie);
   // if(prices == null || prices == undefined) {
@@ -136,7 +134,7 @@ export default function BookingSummary({
         <CardContent>
           <div className="space-y-2">
             <p>
-              <strong>Movie:</strong> {movie.title}
+              <strong>Movie:</strong> {movie.name}
             </p>
             <p>
               <strong>Showtime:</strong> {showtime.time}
