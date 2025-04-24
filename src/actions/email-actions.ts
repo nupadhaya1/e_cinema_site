@@ -69,11 +69,14 @@ export async function sendPromotionalEmail(subject: string, message: string) {
   };
 }
 
-
-export async function sendConfirmationEmail(userId: string, subject: string, body: string) {
+export async function sendConfirmationEmail(
+  userId: string,
+  subject: string,
+  body: string,
+) {
   const fromEmail = process.env.FROM_EMAIL!;
   let email: string | undefined = (await fetchClerkEmail(userId))?.email;
-  if ( ! email) {
+  if (!email) {
     console.error("no email found for user id: " + userId);
     throw new Error("no email found");
   }
@@ -84,4 +87,10 @@ export async function sendConfirmationEmail(userId: string, subject: string, bod
     text: body,
     html: `<p>${body}</p>`,
   };
+
+  try {
+    await sgMail.send(msg);
+  } catch (error) {
+    console.error(`Failed to send confirmation email`, error);
+  }
 }
