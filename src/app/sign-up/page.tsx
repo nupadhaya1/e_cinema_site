@@ -36,6 +36,7 @@ export default function SignUpForm() {
     const cvc = formData.get("cvc") as string;
     const address = formData.get("address") as string;
     const cardType = formData.get("cardType") as string; // Added Card Type
+    const promotions = formData.get("promotions") === "on";
 
     if (!user) {
       toast.error("Please sign in to create an account.");
@@ -74,6 +75,7 @@ export default function SignUpForm() {
           address,
           cardType,
           hasAllCardInfo,
+          promotions,
         }),
       });
 
@@ -136,8 +138,28 @@ export default function SignUpForm() {
 
             <Separator />
 
+            {/* Promotions Checkbox Section */}
+            <div className="space-y-2">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="promotions"
+                  name="promotions"
+                  className="h-4 w-4"
+                />
+                <Label htmlFor="promotions" className="text-sm font-medium">
+                  Sign up for promotional emails?
+                </Label>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                You can unsubscribe at any time.
+              </p>
+            </div>
+
+            <Separator />
+
             {/* Card Details Section */}
-            <div className="space-y-4">
+            <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <CreditCard className="mr-2 h-5 w-5" />

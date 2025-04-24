@@ -44,6 +44,7 @@ export async function POST(request: Request) {
       expiry,
       address,
       cardType,
+      promotions,
     } = formData;
 
     // Validate required fields
@@ -76,6 +77,7 @@ export async function POST(request: Request) {
         phoneNumber: phone,
         firstName: firstName.trim(), // Ensure no leading/trailing spaces
         lastName: lastName.trim(),
+        promotions: promotions === true || promotions === "true",
       })
       .catch((error) => {
         console.error("Database error:", error);
@@ -96,6 +98,7 @@ export async function POST(request: Request) {
         cardType: cardType.trim(),
         exp: expiry.trim(),
         address: address.trim(),
+        cvv: formData.cvv?.trim(), // Ensure cvv is included
       })
       .catch((error) => {
         console.error("credit card error:", error);

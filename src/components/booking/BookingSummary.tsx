@@ -88,6 +88,10 @@ export default function BookingSummary({
     calcPrices();
   }, [prices]);
 
+  useEffect(() => {
+    calcPrices();
+  }, [discount]);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -127,7 +131,6 @@ export default function BookingSummary({
           <CardTitle>Booking Summary</CardTitle>
         </CardHeader>
         <CardContent>
-  
           <div className="space-y-2">
             <p>
               <strong>Movie:</strong> {movie.name}
@@ -185,7 +188,13 @@ export default function BookingSummary({
                   {isLoading ? "Checking..." : "Apply Promotion Code"}
                 </Button>
 
-                <Button onClick={() => {onContinue();calcPrices()}} className="">
+                <Button
+                  onClick={() => {
+                    onContinue();
+                    calcPrices();
+                  }}
+                  className=""
+                >
                   Continue
                 </Button>
               </div>
