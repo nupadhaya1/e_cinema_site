@@ -166,7 +166,9 @@ export default function AdminMovieDetailsForm({
                     <SelectItem value="comedy">Comedy</SelectItem>
                     <SelectItem value="drama">Drama</SelectItem>
                     <SelectItem value="horror">Horror</SelectItem>
-                    <SelectItem value="sci-fi">Science Fiction</SelectItem>
+                    <SelectItem value="Science Fiction">
+                      Science Fiction
+                    </SelectItem>
                     <SelectItem value="thriller">Thriller</SelectItem>
                     <SelectItem value="romance">Romance</SelectItem>
                     <SelectItem value="animation">Animation</SelectItem>

@@ -138,10 +138,11 @@ function MovieWindow({ movie, onClose }: { movie: any; onClose: () => void }) {
 function MoviesClient({ movies }: { movies: any[] }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedMovie, setSelectedMovie] = useState<any | null>(null);
-
   const [categoryFilter, setCategoryFilter] = useState<
     "All" | "Currently Running" | "Coming Soon"
   >("All");
+
+  const [genreFilter, setGenreFilter] = useState<string>("All");
 
   // Filter movies based on the search query
   const filteredMovies = movies.filter((movie) => {
@@ -150,7 +151,10 @@ function MoviesClient({ movies }: { movies: any[] }) {
       .includes(searchQuery.toLowerCase());
     const matchesCategory =
       categoryFilter === "All" || movie.category === categoryFilter;
-    return matchesQuery && matchesCategory;
+    const matchesGenre =
+      genreFilter === "All" ||
+      movie.genre.toLowerCase() === genreFilter.toLowerCase();
+    return matchesQuery && matchesCategory && matchesGenre;
   });
 
   // Filter movies by category
@@ -192,6 +196,22 @@ function MoviesClient({ movies }: { movies: any[] }) {
           <option value="All">All</option>
           <option value="Currently Running">Currently Running</option>
           <option value="Coming Soon">Coming Soon</option>
+        </select>
+        <select
+          value={genreFilter}
+          onChange={(e) => setGenreFilter(e.target.value)}
+          className="rounded-md border p-2"
+        >
+          <option value="All">All Genres</option>
+          <option value="Action">Action</option>
+          <option value="Comedy">Comedy</option>
+          <option value="Drama">Drama</option>
+          <option value="Horror">Horror</option>
+          <option value="Science Fiction">Science Fiction</option>
+          <option value="Thriller">Thriller</option>
+          <option value="Romance">Romance</option>
+          <option value="Animation">Animation</option>
+          <option value="Documentary">Documentary</option>
         </select>
       </div>
 
