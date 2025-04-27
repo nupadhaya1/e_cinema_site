@@ -36,7 +36,7 @@ export async function POST(request: Request) {
     try {
       const subject = "Thank You for Booking With Us!";
       const body = `Confirmation Number: ${bookingId[0]?.bookingId}\nSeats: ${seats.map((seat: any)=> seat.row + seat.number)}\nTotal: ${total}`;
-      sendConfirmationEmail(user.userId, subject, body);
+      await sendConfirmationEmail(user.userId, subject, body);
     } catch(error) {
       console.error("email send fail: " + error);
     }
