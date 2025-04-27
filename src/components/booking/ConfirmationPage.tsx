@@ -8,34 +8,44 @@ import { Price } from "./BookingSummary";
 
 type ConfirmationProps = {
   movie: Movie;
-  showtime: Showtime|null;
+  showtime: Showtime | null;
   seats: Seat[];
   confirmationNumber: Number;
   discount: Number;
   prices: Price;
 };
 
-export default function ConfirmationPage({movie, showtime, seats, confirmationNumber, discount, prices}:ConfirmationProps) {
-    const router = useRouter();
-    function onClick() {
-      router.push("/");
-    }
-    let taxPercentage = 0.1;
-    let subtotal = 0;
-    for (let i = 0; i < seats.length; i++) {
-      subtotal += prices[seats[i]!.ageCategory as keyof Price];
-    }
-    let total = subtotal * (1 + taxPercentage);
-    total = total - Number(discount);
-    return (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-xl text-center">Thank You For Your Order!</CardTitle>
-          </CardHeader>
-          <CardContent>
-          <div className="space-y-2">
-          <p className="text-lg text-center">
-            <strong>{"Confirmation# "+ confirmationNumber}</strong> 
+export default function ConfirmationPage({
+  movie,
+  showtime,
+  seats,
+  confirmationNumber,
+  discount,
+  prices,
+}: ConfirmationProps) {
+  const router = useRouter();
+  function onClick() {
+    router.push("/");
+  }
+  let taxPercentage = 0.1;
+  let subtotal = 0;
+  for (let i = 0; i < seats.length; i++) {
+    subtotal += prices[seats[i]!.ageCategory as keyof Price];
+  }
+  let total = subtotal * (1 + taxPercentage);
+  total = total - Number(discount);
+  total < 0 ? (total = 0) : (total = total);
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-center text-xl">
+          Thank You For Your Order!
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-2">
+          <p className="text-center text-lg">
+            <strong>{"Confirmation# " + confirmationNumber}</strong>
           </p>
           <p>
             <strong>Movie:</strong> {movie.name}
@@ -73,10 +83,10 @@ export default function ConfirmationPage({movie, showtime, seats, confirmationNu
           </div>
         </div>
 
-            <Button onClick={onClick} className="mt-4 w-full">
-                    Return Home
-                  </Button>
-          </CardContent>
-        </Card>
-      );
+        <Button onClick={onClick} className="mt-4 w-full">
+          Return Home
+        </Button>
+      </CardContent>
+    </Card>
+  );
 }
