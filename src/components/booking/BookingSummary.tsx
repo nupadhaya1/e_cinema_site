@@ -80,8 +80,10 @@ export default function BookingSummary({
       _subtotal += prices![seats[i]!.ageCategory as keyof Price];
     }
     let total = _subtotal * (1 + taxPercentage);
+    total = total - Number(discount);
+    total < 0 ? total = 0: total = total;
     setSubTotal(_subtotal);
-    setTotal(total - Number(discount));
+    setTotal(total);
   }
 
   useEffect(() => {
