@@ -149,12 +149,10 @@ function MoviesClient({ movies }: { movies: any[] }) {
     const matchesQuery = movie.name
       .toLowerCase()
       .includes(searchQuery.toLowerCase());
-    const matchesCategory =
-      categoryFilter === "All" || movie.category === categoryFilter;
     const matchesGenre =
       genreFilter === "All" ||
       movie.genre.toLowerCase() === genreFilter.toLowerCase();
-    return matchesQuery && matchesCategory && matchesGenre;
+    return matchesQuery && matchesGenre; // removed matchesCategory from here
   });
 
   // Filter movies by category
